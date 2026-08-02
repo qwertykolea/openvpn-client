@@ -12,8 +12,8 @@ iptables -A FORWARD -o tun+ -j ACCEPT
 # Если переданы логин и пароль через Environment Variables, создаем файл авторизации
 if [ -n "$VPN_USER" ] && [ -n "$VPN_PASS" ]; then
     echo "[+] Creating auto-auth credentials file..."
-    echo "$VPN_USER" > /tmp/credentials.txt
-    echo "$VPN_PASS" >> /tmp/credentials.txt
+    printf '%s\n' "$VPN_USER" > /tmp/credentials.txt
+    printf '%s\n' "$VPN_PASS" >> /tmp/credentials.txt
     chmod 600 /tmp/credentials.txt
     AUTH_ARGS="--auth-user-pass /tmp/credentials.txt"
 else
