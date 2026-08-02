@@ -4,6 +4,7 @@ FROM alpine:latest
 RUN apk add --no-cache \
     openvpn \
     iptables \
+    bind-tools \
     iproute2 \
     ca-certificates \
     bash
