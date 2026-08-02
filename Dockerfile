@@ -7,6 +7,7 @@ RUN apk add --no-cache \
     bind-tools \
     iproute2 \
     ca-certificates \
+    curl \
     bash
 
 WORKDIR /vpn
