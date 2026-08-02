@@ -10,6 +10,10 @@ RUN apk add --no-cache \
     curl \
     bash
 
+
+ENV VPN_LOG_LEVEL=3
+ENV IPTABLES_RULES=iptables_rules
+
 WORKDIR /vpn
 
 COPY entrypoint.sh /entrypoint.sh
