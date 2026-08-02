@@ -66,11 +66,13 @@ if [ -n "$VPN_USER" ] && [ -n "$VPN_PASS" ]; then
     printf '%s\n' "$VPN_USER" > /tmp/credentials.txt
     printf '%s\n' "$VPN_PASS" >> /tmp/credentials.txt
     chmod 600 /tmp/credentials.txt
-    AUTH_ARG="--auth-user-pass /tmp/credentials.txt"
+    AUTH_FLAG=1
+    AUTH_FILE="/tmp/credentials.txt"
 elif [[ $VPN_AUTH_SECRET ]]; then
-    AUTH_ARG="--auth-user-pass /run/secrets/$VPN_AUTH_SECRET"
+    AUTH_FLAG=1
+    AUTH_FILE="/run/secrets/$VPN_AUTH_SECRET"
 else
-    AUTH_ARG=""
+    AUTH_FLAG=0
 fi
 
 for CONFIG_FILE in $config_files
@@ -87,8 +89,9 @@ do
         "--verb" "$VPN_LOG_LEVEL"
     )
 
-    if [ -n "$AUTH_ARG" ]; then
-        openvpn_args+=("$AUTH_ARG")
+    # Добавляем параметры авторизации раздельно, если они нужны
+    if [ "$AUTH_FLAG" -eq 1 ]; then
+        openvpn_args+=("--auth-user-pass" "$AUTH_FILE")
     fi
 
     openvpn "${openvpn_args[@]}" &
