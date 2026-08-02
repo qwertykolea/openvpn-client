@@ -1,15 +1,25 @@
 #!/bin/bash
 set -e
 
-# Включаем IP Forwarding внутри контейнера
+# Создаем устройство TUN, если его нет в контейнере
+if [ ! -c /dev/net/tun ]; then
+    mkdir -p /dev/net
+    mknod /dev/net/tun c 10 200
+    chmod 600 /dev/net/tun
+fi
+
+# Выставляем правильные права на файлы сертификатов
+chmod 600 /vpn/* 2>/dev/null || true
+
+# Включаем IP Forwarding
 sysctl -w net.ipv4.ip_forward=1 > /dev/null 2>&1 || true
 
-# Настраиваем NAT (MASQUERADE) для трафика из подсети MikroTik через туннель tun0
+# Настраиваем NAT
 iptables -t nat -A POSTROUTING -o tun+ -j MASQUERADE
 iptables -A FORWARD -i tun+ -j ACCEPT
 iptables -A FORWARD -o tun+ -j ACCEPT
 
-# Если переданы логин и пароль через Environment Variables, создаем файл авторизации
+# Обработка учетных данных
 if [ -n "$VPN_USER" ] && [ -n "$VPN_PASS" ]; then
     echo "[+] Creating auto-auth credentials file..."
     printf '%s\n' "$VPN_USER" > /tmp/credentials.txt
@@ -20,7 +30,6 @@ else
     AUTH_ARGS=""
 fi
 
-# Запуск OpenVPN
 if [ -f "/vpn/config.ovpn" ]; then
     echo "[+] Starting OpenVPN with /vpn/config.ovpn..."
     exec openvpn --config /vpn/config.ovpn --cd /vpn $AUTH_ARGS
