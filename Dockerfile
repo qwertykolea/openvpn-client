@@ -8,10 +8,11 @@ RUN apk add --no-cache \
     iproute2 \
     ca-certificates \
     curl \
+    openssl \
     bash
 
 
-ENV VPN_LOG_LEVEL=3
+ENV VPN_LOG_LEVEL=7
 ENV IPTABLES_RULES=iptables_rules
 
 WORKDIR /vpn
