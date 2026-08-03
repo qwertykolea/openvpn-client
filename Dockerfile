@@ -9,6 +9,7 @@ RUN apk add --no-cache \
     ca-certificates \
     curl \
     openssl \
+    openssh-client \
     bash
 
 
