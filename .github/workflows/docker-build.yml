@@ -126,6 +126,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:alpine-${{ steps.check_updates.outputs.target_alpine }}-openvpn-${{ steps.check_updates.outputs.target_openvpn }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.check_updates.outputs.target_openvpn }}
+       provenance: false
 
       - name: Update current_versions file in repository
         if: steps.check_updates.outputs.should_build == 'true' && github.event_name != 'workflow_dispatch'
