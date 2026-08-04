@@ -16,7 +16,6 @@ on:
         description: 'OpenVPN version (e.g., 2.6.10). Leave empty for auto-detection.'
         required: false
         default: ''
-      # iptables версия определяется автоматически, отдельный input не нужен
 
 env:
   REGISTRY: ghcr.io
@@ -26,55 +25,60 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      # contents: read    # для чтения репозитория
-      packages: write   # для публикации в GHCR
-      # для коммита изменений current_versions (ниже)
-      contents: write   # нужно, если хотим обновлять файл
+      # contents: read
+      packages: write
+      # Для обновления current_versions (если нужно)
+      contents: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
+      - name: Set up QEMU (для многоплатформенной сборки)
+        uses: docker/setup-qemu-action@v4
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Set up QEMU (for multi-arch)
-        uses: docker/setup-qemu-action@v4
-
       # ------------------------------------------------------------
-      # 1) Определяем, нужно ли собирать (если ручной запуск – собираем всегда)
+      # 1) Определяем версии (автоматически или вручную)
       # ------------------------------------------------------------
-      - name: Check versions (automatic mode)
-        id: check
-        if: github.event_name != 'workflow_dispatch' || (github.event.inputs.alpine_version == '' && github.event.inputs.openvpn_version == '')
+      - name: Determine versions
+        id: versions
         run: |
-          chmod +x scripts/check_versions.sh
-          ./scripts/check_versions.sh
-
-      - name: Use manual versions (if provided)
-        id: manual
-        if: github.event_name == 'workflow_dispatch' && (github.event.inputs.alpine_version != '' || github.event.inputs.openvpn_version != '')
-        run: |
-          ALPINE="${{ github.event.inputs.alpine_version }}"
-          OPENVPN="${{ github.event.inputs.openvpn_version }}"
-          if [ -z "$ALPINE" ]; then
-            # если Alpine не задана, получаем последнюю автоматически
-            ALPINE=$(curl -s https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/x86_64/latest-releases.yaml | grep 'version:' | head -1 | awk '{print $2}')
+          # Если заданы ручные версии – используем их, иначе запускаем скрипт проверки
+          if [ -n "${{ github.event.inputs.alpine_version }}" ] || [ -n "${{ github.event.inputs.openvpn_version }}" ]; then
+            # Ручной режим
+            ALPINE="${{ github.event.inputs.alpine_version }}"
+            OPENVPN="${{ github.event.inputs.openvpn_version }}"
+            if [ -z "$ALPINE" ]; then
+              # Если Alpine не задана, берём последнюю стабильную
+              ALPINE=$(curl -s https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/x86_64/latest-releases.yaml | grep 'version:' | head -1 | awk '{print $2}')
+            fi
+            # Получаем iptables для выбранной Alpine
+            IPTABLES=$(docker run --rm "alpine:$ALPINE" sh -c "apk list iptables 2>/dev/null | sed -n 's/^iptables-\([0-9.]*\)-.*/\1/p'")
+            if [ -z "$IPTABLES" ]; then
+              echo "⚠️  Could not fetch iptables version for $ALPINE, using fallback"
+              IPTABLES="unknown"
+            fi
+            echo "alpine_version=$ALPINE" >> $GITHUB_OUTPUT
+            echo "openvpn_version=$OPENVPN" >> $GITHUB_OUTPUT
+            echo "iptables_version=$IPTABLES" >> $GITHUB_OUTPUT
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "manual=true" >> $GITHUB_OUTPUT
+          else
+            # Автоматический режим – запускаем скрипт проверки
+            chmod +x scripts/check_versions.sh
+            ./scripts/check_versions.sh
           fi
-          # Получаем iptables для заданной Alpine (через docker)
-          IPTABLES=$(docker run --rm alpine:"$ALPINE" apk info -v iptables 2>/dev/null | grep 'iptables-' | head -1 | sed 's/iptables-//' | awk '{print $1}')
-          echo "alpine_version=$ALPINE" >> $GITHUB_OUTPUT
-          echo "openvpn_version=$OPENVPN" >> $GITHUB_OUTPUT
-          echo "iptables_version=$IPTABLES" >> $GITHUB_OUTPUT
-          echo "should_build=true" >> $GITHUB_OUTPUT
 
       # ------------------------------------------------------------
-      # 2) Если сборка не нужна – выходим
+      # 2) Если изменений нет – выходим (пропускаем сборку)
       # ------------------------------------------------------------
       - name: Skip if no changes
-        if: steps.check.outputs.should_build == 'false' && steps.manual.outputs.should_build != 'true'
+        if: steps.versions.outputs.should_build == 'false'
         run: |
-          echo "No new versions, skipping build."
+          echo "No new versions detected, skipping build."
           exit 0
 
       # ------------------------------------------------------------
@@ -88,34 +92,37 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # ------------------------------------------------------------
-      # 4) Сборка и публикация с несколькими тегами
+      # 4) Сборка и публикация образа
       # ------------------------------------------------------------
       - name: Build and push Docker image
         uses: docker/build-push-action@v7
         with:
           context: .
-          platforms: linux/amd64, linux/arm64, linux/arm/v7, linux/arm/v6   # все основные ARM
+          platforms: linux/amd64, linux/arm64, linux/arm/v7, linux/arm/v6
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.check.outputs.openvpn_version || steps.manual.outputs.openvpn_version }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:alpine-${{ steps.check.outputs.alpine_version || steps.manual.outputs.alpine_version }}-openvpn-${{ steps.check.outputs.openvpn_version || steps.manual.outputs.openvpn_version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.versions.outputs.openvpn_version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:alpine-${{ steps.versions.outputs.alpine_version }}-openvpn-${{ steps.versions.outputs.openvpn_version }}
           build-args: |
-            ALPINE_VERSION=${{ steps.check.outputs.alpine_version || steps.manual.outputs.alpine_version }}
-            OPENVPN_VERSION=${{ steps.check.outputs.openvpn_version || steps.manual.outputs.openvpn_version }}
-            IPTABLES_VERSION=${{ steps.check.outputs.iptables_version || steps.manual.outputs.iptables_version }}
+            ALPINE_VERSION=${{ steps.versions.outputs.alpine_version }}
+            OPENVPN_VERSION=${{ steps.versions.outputs.openvpn_version }}
+            IPTABLES_VERSION=${{ steps.versions.outputs.iptables_version }}
+          # Кеширование для ускорения (опционально)
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       # ------------------------------------------------------------
-      # 5) Обновляем current_versions (только при автоматическом запуске и если были изменения)
+      # 5) Обновляем current_versions (только если это был автоматический запуск и были изменения)
       # ------------------------------------------------------------
       - name: Update current_versions file
         if: |
-          (steps.check.outputs.should_build == 'true' && github.event_name != 'workflow_dispatch') ||
-          (steps.manual.outputs.should_build == 'true' && github.event_name == 'workflow_dispatch' && github.event.inputs.alpine_version == '' && github.event.inputs.openvpn_version == '')
+          steps.versions.outputs.should_build == 'true' &&
+          steps.versions.outputs.manual != 'true'
         run: |
-          ALPINE="${{ steps.check.outputs.alpine_version || steps.manual.outputs.alpine_version }}"
-          OPENVPN="${{ steps.check.outputs.openvpn_version || steps.manual.outputs.openvpn_version }}"
-          IPTABLES="${{ steps.check.outputs.iptables_version || steps.manual.outputs.iptables_version }}"
+          ALPINE="${{ steps.versions.outputs.alpine_version }}"
+          OPENVPN="${{ steps.versions.outputs.openvpn_version }}"
+          IPTABLES="${{ steps.versions.outputs.iptables_version }}"
           cat > current_versions <<EOF
           current_alpine_version=$ALPINE
           current_openvpn_version=$OPENVPN
