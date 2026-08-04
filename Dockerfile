@@ -5,7 +5,7 @@ RUN apk update && \
     apk upgrade && \
     apk add --no-cache \
     openvpn \
-    iptables \
+    iptables && \
     rm -rf /var/cache/apk
 
 
