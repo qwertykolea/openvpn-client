@@ -8,8 +8,7 @@ RUN apk update && \
     iptables && \
     rm -rf /var/cache/apk
 
-
-ENV VPN_LOG_LEVEL=7
+ENV OVPN_LOG_LEVEL=3
 
 WORKDIR /vpn
 
