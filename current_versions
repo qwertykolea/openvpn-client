@@ -1,3 +1,3 @@
-current_alpine_version=1
-current_openvpn_version=1
+current_alpine_version=3.23.5
+current_openvpn_version=2.7.5
 current_iptables_version=1
