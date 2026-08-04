@@ -44,7 +44,6 @@ jobs:
             source current_versions
             echo "alpine=$current_alpine_version" >> $GITHUB_OUTPUT
             echo "openvpn=$current_openvpn_version" >> $GITHUB_OUTPUT
-            echo "iptables=$current_iptables_version" >> $GITHUB_OUTPUT
           else
             echo "Ошибка: Файл current_versions не найден!"
             exit 1
@@ -53,47 +52,48 @@ jobs:
       - name: Check for new upstream versions
         id: check_updates
         run: |
-          # 1. Определение целевой версии Alpine
-          if [ -n "${{ inputs.alpine_version }}" ]; then
-            NEW_ALPINE="${{ inputs.alpine_version }}"
-          else
-            # Получение последней стабильной версии Alpine с Docker Hub
-            NEW_ALPINE=$(curl -s "https://registry.hub.docker.com/v2/repositories/library/alpine/tags?page_size=20" | jq -r '.results[].name' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
-          fi
+         # 1. Определение целевой версии Alpine
+         if [ -n "${{ github.event.inputs.alpine_version }}" ]; then
+           NEW_ALPINE="${{ github.event.inputs.alpine_version }}"
+         else
+          # Берем 100 последних тегов, фильтруем по формату X.Y.Z, сортируем как версии по убыванию и берем самую свежую
+          NEW_ALPINE=$(curl -s "https://registry.hub.docker.com/v2/repositories/library/alpine/tags?page_size=100" \
+            | jq -r '.results[].name' \
+            | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' \
+            | sort -V -r \
+            | head -n 1)
+         fi
 
           # 2. Определение целевой версии OpenVPN
-          if [ -n "${{ inputs.openvpn_version }}" ]; then
-            NEW_OPENVPN="${{ inputs.openvpn_version }}"
-          else
-            # Получение последнего релиза OpenVPN с GitHub API
-            NEW_OPENVPN=$(curl -s "https://api.github.com/repos/OpenVPN/openvpn/releases/latest" | jq -r '.tag_name' | sed 's/^v//')
-          fi
-
-          # 3. Определение целевой версии iptables
-          # (Пример получения свежего релизного тега netfilter/iptables через GitHub API)
-          NEW_IPTABLES=$(curl -s "https://api.github.com/repos/netfilter-org/iptables/tags" | jq -r '.[0].name' | sed 's/^v//')
+         if [ -n "${{ github.event.inputs.openvpn_version }}" ]; then
+          NEW_OPENVPN="${{ github.event.inputs.openvpn_version }}"
+         else
+         # ИДЕЯ (Пункт 5): Добавлен GITHUB_TOKEN в заголовок, чтобы не поймать Rate Limit, как это было с iptables!
+          NEW_OPENVPN=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/OpenVPN/openvpn/releases/latest" \
+             | jq -r '.tag_name' \
+             | sed 's/^v//')
+         fi
+          
 
           # Запись определенных версий в outputs
-          echo "target_alpine=${NEW_ALPINE:-${{ steps.current_vers.outputs.alpine }}}" >> $GITHUB_OUTPUT
-          echo "target_openvpn=${NEW_OPENVPN:-${{ steps.current_vers.outputs.openvpn }}}" >> $GITHUB_OUTPUT
-          echo "target_iptables=${NEW_IPTABLES:-${{ steps.current_vers.outputs.iptables }}}" >> $GITHUB_OUTPUT
+          echo "target_alpine=${NEW_ALPINE:-1}" >> $GITHUB_OUTPUT
+          echo "target_openvpn=${NEW_OPENVPN:-1}" >> $GITHUB_OUTPUT
 
           # Логика сравнения
           SHOULD_BUILD="false"
           
-          if [ "${{ inputs.force_build }}" == "true" ]; then
+          if [ "${{ github.event.inputs.force_build }}" == "true" ]; then
             echo "Принудительный запуск сборки через workflow_dispatch."
-            SHOULD_BUILD="true"
+          SHOULD_BUILD="true"
           elif [ "$NEW_ALPINE" != "${{ steps.current_vers.outputs.alpine }}" ] || \
-               [ "$NEW_OPENVPN" != "${{ steps.current_vers.outputs.openvpn }}" ] || \
-               [ "$NEW_IPTABLES" != "${{ steps.current_vers.outputs.iptables }}" ]; then
-            echo "Обнаружены новые версии компонент!"
-            SHOULD_BUILD="true"
+               [ "$NEW_OPENVPN" != "${{ steps.current_vers.outputs.openvpn }}" ]; then
+           echo "Обнаружены новые версии компонент!"
+          SHOULD_BUILD="true"
           else
-            echo "Все версии актуальны. Сборка не требуется."
+          echo "Все версии актуальны. Сборка не требуется."
           fi
 
-          echo "should_build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
+         echo "should_build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU (for multi-arch)
         if: steps.check_updates.outputs.should_build == 'true'
@@ -124,8 +124,8 @@ jobs:
             OPENVPN_VERSION=${{ steps.check_updates.outputs.target_openvpn }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:alpine-${{ steps.check_updates.outputs.target_alpine }}-openvpn-${{ steps.check_updates.outputs.target_openvpn }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.check_updates.outputs.target_openvpn }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.check_updates.outputs.target_alpine }}-${{ steps.check_updates.outputs.target_openvpn }}
 
       - name: Update current_versions file in repository
         if: steps.check_updates.outputs.should_build == 'true' && github.event_name != 'workflow_dispatch'
