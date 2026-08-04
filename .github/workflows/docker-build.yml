@@ -4,9 +4,19 @@ on:
   push:
     branches: [ "main" ]
   schedule:
-    # Запуск каждую неделю в воскресенье для подтягивания обновлений
+    # Каждое воскресенье в 00:00 UTC
     - cron: '0 0 * * 0'
   workflow_dispatch:
+    inputs:
+      alpine_version:
+        description: 'Alpine version (e.g., 3.20). Leave empty for auto-detection.'
+        required: false
+        default: ''
+      openvpn_version:
+        description: 'OpenVPN version (e.g., 2.6.10). Leave empty for auto-detection.'
+        required: false
+        default: ''
+      # iptables версия определяется автоматически, отдельный input не нужен
 
 env:
   REGISTRY: ghcr.io
@@ -16,19 +26,60 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      packages: write
+      contents: read    # для чтения репозитория
+      packages: write   # для публикации в GHCR
+      # для коммита изменений current_versions (ниже)
+      contents: write   # нужно, если хотим обновлять файл
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Set up QEMU (for multi-arch)
-        uses: docker/setup-qemu-action@v4
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
+      - name: Set up QEMU (for multi-arch)
+        uses: docker/setup-qemu-action@v4
+
+      # ------------------------------------------------------------
+      # 1) Определяем, нужно ли собирать (если ручной запуск – собираем всегда)
+      # ------------------------------------------------------------
+      - name: Check versions (automatic mode)
+        id: check
+        if: github.event_name != 'workflow_dispatch' || (github.event.inputs.alpine_version == '' && github.event.inputs.openvpn_version == '')
+        run: |
+          chmod +x scripts/check_versions.sh
+          ./scripts/check_versions.sh
+
+      - name: Use manual versions (if provided)
+        id: manual
+        if: github.event_name == 'workflow_dispatch' && (github.event.inputs.alpine_version != '' || github.event.inputs.openvpn_version != '')
+        run: |
+          ALPINE="${{ github.event.inputs.alpine_version }}"
+          OPENVPN="${{ github.event.inputs.openvpn_version }}"
+          if [ -z "$ALPINE" ]; then
+            # если Alpine не задана, получаем последнюю автоматически
+            ALPINE=$(curl -s https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/x86_64/latest-releases.yaml | grep 'version:' | head -1 | awk '{print $2}')
+          fi
+          # Получаем iptables для заданной Alpine (через docker)
+          IPTABLES=$(docker run --rm alpine:"$ALPINE" apk info -v iptables 2>/dev/null | grep 'iptables-' | head -1 | sed 's/iptables-//' | awk '{print $1}')
+          echo "alpine_version=$ALPINE" >> $GITHUB_OUTPUT
+          echo "openvpn_version=$OPENVPN" >> $GITHUB_OUTPUT
+          echo "iptables_version=$IPTABLES" >> $GITHUB_OUTPUT
+          echo "should_build=true" >> $GITHUB_OUTPUT
+
+      # ------------------------------------------------------------
+      # 2) Если сборка не нужна – выходим
+      # ------------------------------------------------------------
+      - name: Skip if no changes
+        if: steps.check.outputs.should_build == 'false' && steps.manual.outputs.should_build != 'true'
+        run: |
+          echo "No new versions, skipping build."
+          exit 0
+
+      # ------------------------------------------------------------
+      # 3) Логин в GHCR
+      # ------------------------------------------------------------
       - name: Log in to GHCR
         uses: docker/login-action@v4
         with:
@@ -36,11 +87,42 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # ------------------------------------------------------------
+      # 4) Сборка и публикация с несколькими тегами
+      # ------------------------------------------------------------
       - name: Build and push Docker image
         uses: docker/build-push-action@v7
         with:
           context: .
-          platforms: linux/arm64, linux/amd64
+          platforms: linux/amd64, linux/arm64, linux/arm/v7, linux/arm/v6   # все основные ARM
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.check.outputs.openvpn_version || steps.manual.outputs.openvpn_version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:alpine-${{ steps.check.outputs.alpine_version || steps.manual.outputs.alpine_version }}-openvpn-${{ steps.check.outputs.openvpn_version || steps.manual.outputs.openvpn_version }}
+          build-args: |
+            ALPINE_VERSION=${{ steps.check.outputs.alpine_version || steps.manual.outputs.alpine_version }}
+            OPENVPN_VERSION=${{ steps.check.outputs.openvpn_version || steps.manual.outputs.openvpn_version }}
+            IPTABLES_VERSION=${{ steps.check.outputs.iptables_version || steps.manual.outputs.iptables_version }}
+
+      # ------------------------------------------------------------
+      # 5) Обновляем current_versions (только при автоматическом запуске и если были изменения)
+      # ------------------------------------------------------------
+      - name: Update current_versions file
+        if: |
+          (steps.check.outputs.should_build == 'true' && github.event_name != 'workflow_dispatch') ||
+          (steps.manual.outputs.should_build == 'true' && github.event_name == 'workflow_dispatch' && github.event.inputs.alpine_version == '' && github.event.inputs.openvpn_version == '')
+        run: |
+          ALPINE="${{ steps.check.outputs.alpine_version || steps.manual.outputs.alpine_version }}"
+          OPENVPN="${{ steps.check.outputs.openvpn_version || steps.manual.outputs.openvpn_version }}"
+          IPTABLES="${{ steps.check.outputs.iptables_version || steps.manual.outputs.iptables_version }}"
+          cat > current_versions <<EOF
+          current_alpine_version=$ALPINE
+          current_openvpn_version=$OPENVPN
+          current_iptables_version=$IPTABLES
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add current_versions
+          git commit -m "chore: update current_versions [skip ci]" || echo "No changes to commit"
+          git push
