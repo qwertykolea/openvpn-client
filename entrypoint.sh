@@ -40,4 +40,6 @@ exec openvpn \
     --config "$TMP_CONFIG" \
     --verb "$VERB" \
     --suppress-timestamps \
-    --up /tmp/up.sh
+    --script-security 2 \
+    --up /tmp/up.sh \
+    --up-restart
