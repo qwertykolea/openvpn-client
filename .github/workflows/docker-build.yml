@@ -1,8 +1,8 @@
 name: Build and Push OpenVPN Container
 
 on:
-  push:
-    branches: [ "main" ]
+  #push:
+  #  branches: [ "main" ]
   schedule:
     # Запуск каждое воскресенье в 00:00 UTC
     - cron: '0 0 * * 0'
