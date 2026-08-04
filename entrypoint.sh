@@ -23,6 +23,9 @@ if grep -Eq '^[[:space:]]*auth-user-pass[[:space:]]*$' "$TMP_CONFIG"; then
     fi
 fi
 
+iptables -t nat -A POSTROUTING -o tun0 -j MASQUERADE
+iptables -P FORWARD ACCEPT
+
 echo "Starting OpenVPN..."
 echo "Config : $CONFIG"
 echo "Verb   : $VERB"
