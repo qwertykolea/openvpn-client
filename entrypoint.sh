@@ -4,7 +4,7 @@ set -eu
 
 # Вспомогательная функция для очистки переменных от кавычек и краевых пробелов
 clean_var() {
-    echo "$1" | sed -e 's/^[[:space:]"' "'" ']*//' -e 's/[[:space:]"' "'" ']*$//'
+    printf '%s' "$1" | sed 's/^[ '\''"]*//;s/[ '\''"]*$//'
 }
 
 # 1. Очистка и инициализация основных переменных
@@ -67,6 +67,9 @@ if [ -n "$AUTH_FILE" ]; then
     else
         echo "auth-user-pass $AUTH_FILE" >> "$TMP_CONFIG"
     fi
+else
+    # Если логин/пароль не переданы, закомментировать auth-user-pass на случай, если она зашита в .ovpn
+    sed -i -E 's/^[[:space:]]*(auth-user-pass.*)/# \1/' "$TMP_CONFIG"
 fi
 
 # 4. Проверка и автоматическое создание TUN-устройства
@@ -86,7 +89,6 @@ start_watchdog() {
 
             echo "Watchdog started: pinging $HEALTHCHECK_HOST every ${INTERVAL}s (max fails: $MAX_FAILS)"
             
-            # Небольшая задержка перед первой проверкой для установки VPN-сессии
             sleep 15
 
             while true; do
@@ -107,48 +109,49 @@ start_watchdog() {
     fi
 }
 
-# 6. Создание скрипта поднятия интерфейса (NAT + MSS Clamping + Multi-DNS + Custom Hook)
+# 6. Безопасное формирование /tmp/up.sh
 cat > /tmp/up.sh << 'EOF'
 #!/bin/sh
 iptables -t nat -A POSTROUTING -o tun0 -j MASQUERADE
 iptables -P FORWARD ACCEPT
 iptables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
 echo "iptables NAT & MSS rules applied for tun0."
+EOF
 
-# Обработка списка DNS-серверов (поддержка запятых и пробелов)
-if [ -n "${OVPN_DNS_SERVER:-}" ]; then
-    # Заменяем запятые на пробелы
-    CLEAN_DNS_LIST=$(echo "${OVPN_DNS_SERVER}" | tr ',' ' ')
-    
-    > /etc/resolv.conf
+# Добавление правил DNS при указании OVPN_DNS_SERVER
+if [ -n "$OVPN_DNS_SERVER" ]; then
+    CLEAN_DNS_LIST=$(echo "$OVPN_DNS_SERVER" | tr ',' ' ')
     PRIMARY_DNS=""
+    DNS_ENTRIES=""
 
     for dns in $CLEAN_DNS_LIST; do
-        # Очищаем адрес от возможных кавычек/пробелов
-        dns_ip=$(echo "$dns" | tr -d ' "' "'")
-        if [ -n "$dns_ip" ]; then
-            echo "nameserver $dns_ip" >> /etc/resolv.conf
-            echo "Added DNS server: $dns_ip"
+        dns_clean=$(printf '%s' "$dns" | tr -d ' "' "'")
+        if [ -n "$dns_clean" ]; then
             if [ -z "$PRIMARY_DNS" ]; then
-                PRIMARY_DNS="$dns_ip"
+                PRIMARY_DNS="$dns_clean"
             fi
+            DNS_ENTRIES="${DNS_ENTRIES}nameserver ${dns_clean}\n"
         fi
     done
 
-    # Перенаправление внешних DNS-запросов на первый DNS из списка
     if [ -n "$PRIMARY_DNS" ]; then
-        iptables -t nat -A PREROUTING -p udp --dport 53 -j DNAT --to-destination "${PRIMARY_DNS}:53"
-        iptables -t nat -A PREROUTING -p tcp --dport 53 -j DNAT --to-destination "${PRIMARY_DNS}:53"
-        echo "DNS queries intercepted and redirected to primary DNS: ${PRIMARY_DNS}"
+        cat >> /tmp/up.sh << EOF
+printf "${DNS_ENTRIES}" > /etc/resolv.conf
+iptables -t nat -A PREROUTING -p udp --dport 53 -j DNAT --to-destination ${PRIMARY_DNS}:53
+iptables -t nat -A PREROUTING -p tcp --dport 53 -j DNAT --to-destination ${PRIMARY_DNS}:53
+echo "DNS redirected to ${PRIMARY_DNS} via iptables DNAT."
+EOF
     fi
 fi
 
-# Выполнение кастомного post-up скрипта пользователя (если существует в /vpn/)
+# Пользовательский post-up хук
+cat >> /tmp/up.sh << 'EOF'
 if [ -f /vpn/post-up.sh ]; then
     echo "Executing custom script /vpn/post-up.sh..."
     sh /vpn/post-up.sh || true
 fi
 EOF
+
 chmod +x /tmp/up.sh
 
 # Запуск Watchdog
@@ -158,7 +161,7 @@ echo "Starting OpenVPN..."
 echo "Config : $CONFIG"
 echo "Verb   : $VERB"
 
-# Запуск OpenVPN с разворачиванием OVPN_EXTRA_ARGS по пробелам
+# Запуск OpenVPN
 exec openvpn \
     --config "$TMP_CONFIG" \
     --verb "$VERB" \
