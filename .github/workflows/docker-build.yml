@@ -4,7 +4,6 @@ on:
   push:
     branches: [ "main" ]
   schedule:
-    # Каждое воскресенье в 00:00 UTC
     - cron: '0 0 * * 0'
   workflow_dispatch:
     inputs:
@@ -27,8 +26,7 @@ jobs:
     permissions:
       # contents: read
       packages: write
-      # Для обновления current_versions (если нужно)
-      contents: write
+      contents: write   # для обновления current_versions
 
     steps:
       - name: Checkout repository
@@ -46,16 +44,13 @@ jobs:
       - name: Determine versions
         id: versions
         run: |
-          # Если заданы ручные версии – используем их, иначе запускаем скрипт проверки
           if [ -n "${{ github.event.inputs.alpine_version }}" ] || [ -n "${{ github.event.inputs.openvpn_version }}" ]; then
             # Ручной режим
             ALPINE="${{ github.event.inputs.alpine_version }}"
             OPENVPN="${{ github.event.inputs.openvpn_version }}"
             if [ -z "$ALPINE" ]; then
-              # Если Alpine не задана, берём последнюю стабильную
               ALPINE=$(curl -s https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/x86_64/latest-releases.yaml | grep 'version:' | head -1 | awk '{print $2}')
             fi
-            # Получаем iptables для выбранной Alpine
             IPTABLES=$(docker run --rm "alpine:$ALPINE" sh -c "apk list iptables 2>/dev/null | sed -n 's/^iptables-\([0-9.]*\)-.*/\1/p'")
             if [ -z "$IPTABLES" ]; then
               echo "⚠️  Could not fetch iptables version for $ALPINE, using fallback"
@@ -76,15 +71,16 @@ jobs:
       # 2) Если изменений нет – выходим (пропускаем сборку)
       # ------------------------------------------------------------
       - name: Skip if no changes
-        if: steps.versions.outputs.should_build == 'false'
+        if: steps.versions.outputs.should_build != 'true'
         run: |
           echo "No new versions detected, skipping build."
           exit 0
 
       # ------------------------------------------------------------
-      # 3) Логин в GHCR
+      # 3) Логин в GHCR (только если нужна сборка)
       # ------------------------------------------------------------
       - name: Log in to GHCR
+        if: steps.versions.outputs.should_build == 'true'
         uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
@@ -92,9 +88,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # ------------------------------------------------------------
-      # 4) Сборка и публикация образа
+      # 4) Сборка и публикация образа (только если нужна сборка)
       # ------------------------------------------------------------
       - name: Build and push Docker image
+        if: steps.versions.outputs.should_build == 'true'
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -108,12 +105,11 @@ jobs:
             ALPINE_VERSION=${{ steps.versions.outputs.alpine_version }}
             OPENVPN_VERSION=${{ steps.versions.outputs.openvpn_version }}
             IPTABLES_VERSION=${{ steps.versions.outputs.iptables_version }}
-          # Кеширование для ускорения (опционально)
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       # ------------------------------------------------------------
-      # 5) Обновляем current_versions (только если это был автоматический запуск и были изменения)
+      # 5) Обновляем current_versions (только если автоматический запуск и были изменения)
       # ------------------------------------------------------------
       - name: Update current_versions file
         if: |
