@@ -6,7 +6,8 @@ if [ -f "$CURRENT_FILE" ]; then
   source "$CURRENT_FILE"
 else
   echo "❌ current_versions not found" >&2
-  exit 1
+  echo "should_build=false" >> $GITHUB_OUTPUT
+  exit 0
 fi
 
 # Все информационные сообщения направляем в stderr, чтобы они не попадали в stdout
