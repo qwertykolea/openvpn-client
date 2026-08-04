@@ -2,8 +2,6 @@
 set -e
 
 CURRENT_FILE="current_versions"
-
-# Читаем текущие версии из файла
 if [ -f "$CURRENT_FILE" ]; then
   source "$CURRENT_FILE"
 else
@@ -25,19 +23,41 @@ if [ -z "$LATEST_ALPINE" ]; then
 fi
 echo "  Latest Alpine: $LATEST_ALPINE"
 
-# 2) Получаем версии пакетов openvpn и iptables для этой Alpine (через временный контейнер)
+# 2) Проверяем, существует ли образ в Docker Hub (и загружаем его, чтобы избежать ошибок)
+echo "🐳 Checking if alpine:$LATEST_ALPINE exists..."
+if ! docker pull "alpine:$LATEST_ALPINE" > /dev/null 2>&1; then
+  echo "⚠️  Image alpine:$LATEST_ALPINE not found, trying fallback to latest minor version..."
+  # Пробуем взять без последней цифры (например, 3.24 вместо 3.24.1)
+  FALLBACK_VERSION=$(echo "$LATEST_ALPINE" | cut -d. -f1,2)
+  if docker pull "alpine:$FALLBACK_VERSION" > /dev/null 2>&1; then
+    LATEST_ALPINE="$FALLBACK_VERSION"
+    echo "  Using fallback: $LATEST_ALPINE"
+  else
+    echo "❌ No working Alpine image found"
+    exit 1
+  fi
+fi
+
+# 3) Получаем версии пакетов (используем более стабильный формат вывода)
 echo "🐳 Fetching package versions for Alpine $LATEST_ALPINE..."
-OPENVPN_VERSION=$(docker run --rm alpine:"$LATEST_ALPINE" apk info -v openvpn 2>/dev/null | grep 'openvpn-' | head -1 | sed 's/openvpn-//' | awk '{print $1}')
-IPTABLES_VERSION=$(docker run --rm alpine:"$LATEST_ALPINE" apk info -v iptables 2>/dev/null | grep 'iptables-' | head -1 | sed 's/iptables-//' | awk '{print $1}')
+
+# Запускаем контейнер и выполняем apk list, затем парсим версии
+OUTPUT=$(docker run --rm "alpine:$LATEST_ALPINE" sh -c "apk list -I openvpn iptables 2>/dev/null | sed -n 's/^openvpn-\([0-9.]*\)-.*/\1/p; s/^iptables-\([0-9.]*\)-.*/\1/p'")
+# Ожидаем две строки: сначала openvpn, потом iptables
+OPENVPN_VERSION=$(echo "$OUTPUT" | head -1)
+IPTABLES_VERSION=$(echo "$OUTPUT" | tail -1)
 
 if [ -z "$OPENVPN_VERSION" ] || [ -z "$IPTABLES_VERSION" ]; then
   echo "❌ Failed to get package versions"
+  echo "  Output was:"
+  echo "$OUTPUT"
   exit 1
 fi
+
 echo "  OpenVPN : $OPENVPN_VERSION"
 echo "  iptables: $IPTABLES_VERSION"
 
-# 3) Сравниваем с текущими
+# 4) Сравниваем с текущими
 SHOULD_BUILD=false
 if [ "$current_alpine_version" != "$LATEST_ALPINE" ] || \
    [ "$current_openvpn_version" != "$OPENVPN_VERSION" ] || \
@@ -45,7 +65,7 @@ if [ "$current_alpine_version" != "$LATEST_ALPINE" ] || \
   SHOULD_BUILD=true
 fi
 
-# 4) Вывод переменных для GitHub Actions (через GITHUB_OUTPUT)
+# 5) Вывод переменных для GitHub Actions
 echo "should_build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
 echo "alpine_version=$LATEST_ALPINE" >> $GITHUB_OUTPUT
 echo "openvpn_version=$OPENVPN_VERSION" >> $GITHUB_OUTPUT
