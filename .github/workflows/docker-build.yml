@@ -26,10 +26,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read    # для чтения репозитория
+      # contents: read    # для чтения репозитория
       packages: write   # для публикации в GHCR
       # для коммита изменений current_versions (ниже)
-      # contents: write   # нужно, если хотим обновлять файл
+      contents: write   # нужно, если хотим обновлять файл
 
     steps:
       - name: Checkout repository
