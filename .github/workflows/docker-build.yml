@@ -133,7 +133,6 @@ jobs:
           cat <<EOF > current_versions
           current_alpine_version=${{ steps.check_updates.outputs.target_alpine }}
           current_openvpn_version=${{ steps.check_updates.outputs.target_openvpn }}
-          current_iptables_version=${{ steps.check_updates.outputs.target_iptables }}
           EOF
 
           git config user.name "github-actions[bot]"
