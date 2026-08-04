@@ -1,13 +1,12 @@
 FROM alpine:latest
 
 # Установка OpenVPN, iptables и сетевых утилит
-RUN apk add --no-cache \
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache \
     openvpn \
-    ca-certificates \
-    curl \
-    openssl \
-    openssh-client \
-    bash
+    iptables \
+    rm -rf /var/cache/apk
 
 
 ENV VPN_LOG_LEVEL=7
