@@ -5,7 +5,7 @@ CURRENT_FILE="current_versions"
 if [ -f "$CURRENT_FILE" ]; then
   source "$CURRENT_FILE"
 else
-  echo "❌ current_versions not found"
+  echo "current_versions not found"
   exit 1
 fi
 
@@ -15,7 +15,7 @@ echo "  OpenVPN : $current_openvpn_version"
 echo "  iptables: $current_iptables_version"
 
 # 1) Получаем последнюю стабильную версию Alpine
-echo "🌐 Fetching latest stable Alpine..."
+echo "Fetching latest stable Alpine..."
 LATEST_ALPINE=$(curl -s https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/x86_64/latest-releases.yaml | grep 'version:' | head -1 | awk '{print $2}')
 if [ -z "$LATEST_ALPINE" ]; then
   echo "❌ Failed to get Alpine version"
@@ -29,14 +29,14 @@ get_package_versions() {
   echo "🐳 Fetching package versions for Alpine $alpine_ver..."
   # Проверяем наличие образа
   if ! docker pull "alpine:$alpine_ver" > /dev/null 2>&1; then
-    echo "⚠️  Image alpine:$alpine_ver not found"
+    echo "Image alpine:$alpine_ver not found"
     return 1
   fi
   # Запрашиваем список доступных пакетов (не установленных)
   local output
   output=$(docker run --rm "alpine:$alpine_ver" sh -c "apk list openvpn iptables 2>/dev/null")
   if [ -z "$output" ]; then
-    echo "⚠️  No packages found with 'apk list'"
+    echo "No packages found with 'apk list'"
     return 1
   fi
   # Парсим версии: ожидаем строки вида "openvpn-2.6.10-r0" и "iptables-1.8.10-r0"
@@ -53,21 +53,21 @@ get_package_versions() {
 
 # Пытаемся получить версии для последней Alpine
 if ! read -r OPENVPN_VERSION IPTABLES_VERSION <<< $(get_package_versions "$LATEST_ALPINE"); then
-  echo "⚠️  Failed for $LATEST_ALPINE, trying fallback to major version (without patch)..."
+  echo "Failed for $LATEST_ALPINE, trying fallback to major version (without patch)..."
   # Берём только мажорную часть (например, 3.24 вместо 3.24.1)
   FALLBACK_MAJOR=$(echo "$LATEST_ALPINE" | cut -d. -f1,2)
   if [ "$FALLBACK_MAJOR" != "$LATEST_ALPINE" ]; then
     if read -r OPENVPN_VERSION IPTABLES_VERSION <<< $(get_package_versions "$FALLBACK_MAJOR"); then
       LATEST_ALPINE="$FALLBACK_MAJOR"
-      echo "  ✅ Using fallback Alpine version: $LATEST_ALPINE"
+      echo "Using fallback Alpine version: $LATEST_ALPINE"
     else
-      echo "❌ Fallback also failed. No build will be triggered."
+      echo "Fallback also failed. No build will be triggered."
       # Выходим без ошибки, но помечаем, что сборка не нужна
       echo "should_build=false" >> $GITHUB_OUTPUT
       exit 0
     fi
   else
-    echo "❌ No fallback version available. Skipping build."
+    echo "No fallback version available. Skipping build."
     echo "should_build=false" >> $GITHUB_OUTPUT
     exit 0
   fi
@@ -91,7 +91,7 @@ echo "openvpn_version=$OPENVPN_VERSION" >> $GITHUB_OUTPUT
 echo "iptables_version=$IPTABLES_VERSION" >> $GITHUB_OUTPUT
 
 if [ "$SHOULD_BUILD" = true ]; then
-  echo "✅ New versions detected – build will proceed."
+  echo "New versions detected – build will proceed."
 else
-  echo "⏭️ No changes – build skipped."
+  echo "No changes – build skipped."
 fi
