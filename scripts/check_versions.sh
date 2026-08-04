@@ -23,41 +23,60 @@ if [ -z "$LATEST_ALPINE" ]; then
 fi
 echo "  Latest Alpine: $LATEST_ALPINE"
 
-# 2) Проверяем, существует ли образ в Docker Hub (и загружаем его, чтобы избежать ошибок)
-echo "🐳 Checking if alpine:$LATEST_ALPINE exists..."
-if ! docker pull "alpine:$LATEST_ALPINE" > /dev/null 2>&1; then
-  echo "⚠️  Image alpine:$LATEST_ALPINE not found, trying fallback to latest minor version..."
-  # Пробуем взять без последней цифры (например, 3.24 вместо 3.24.1)
-  FALLBACK_VERSION=$(echo "$LATEST_ALPINE" | cut -d. -f1,2)
-  if docker pull "alpine:$FALLBACK_VERSION" > /dev/null 2>&1; then
-    LATEST_ALPINE="$FALLBACK_VERSION"
-    echo "  Using fallback: $LATEST_ALPINE"
-  else
-    echo "❌ No working Alpine image found"
-    exit 1
+# Функция получения версий пакетов для заданной Alpine
+get_package_versions() {
+  local alpine_ver=$1
+  echo "🐳 Fetching package versions for Alpine $alpine_ver..."
+  # Проверяем наличие образа
+  if ! docker pull "alpine:$alpine_ver" > /dev/null 2>&1; then
+    echo "⚠️  Image alpine:$alpine_ver not found"
+    return 1
   fi
-fi
+  # Запрашиваем список доступных пакетов (не установленных)
+  local output
+  output=$(docker run --rm "alpine:$alpine_ver" sh -c "apk list openvpn iptables 2>/dev/null")
+  if [ -z "$output" ]; then
+    echo "⚠️  No packages found with 'apk list'"
+    return 1
+  fi
+  # Парсим версии: ожидаем строки вида "openvpn-2.6.10-r0" и "iptables-1.8.10-r0"
+  local openvpn_ver=$(echo "$output" | grep '^openvpn-' | head -1 | sed -n 's/^openvpn-\([0-9.]*\)-.*/\1/p')
+  local iptables_ver=$(echo "$output" | grep '^iptables-' | head -1 | sed -n 's/^iptables-\([0-9.]*\)-.*/\1/p')
+  if [ -z "$openvpn_ver" ] || [ -z "$iptables_ver" ]; then
+    echo "⚠️  Could not parse versions from output:"
+    echo "$output"
+    return 1
+  fi
+  echo "$openvpn_ver $iptables_ver"
+  return 0
+}
 
-# 3) Получаем версии пакетов (используем более стабильный формат вывода)
-echo "🐳 Fetching package versions for Alpine $LATEST_ALPINE..."
-
-# Запускаем контейнер и выполняем apk list, затем парсим версии
-OUTPUT=$(docker run --rm "alpine:$LATEST_ALPINE" sh -c "apk list -I openvpn iptables 2>/dev/null | sed -n 's/^openvpn-\([0-9.]*\)-.*/\1/p; s/^iptables-\([0-9.]*\)-.*/\1/p'")
-# Ожидаем две строки: сначала openvpn, потом iptables
-OPENVPN_VERSION=$(echo "$OUTPUT" | head -1)
-IPTABLES_VERSION=$(echo "$OUTPUT" | tail -1)
-
-if [ -z "$OPENVPN_VERSION" ] || [ -z "$IPTABLES_VERSION" ]; then
-  echo "❌ Failed to get package versions"
-  echo "  Output was:"
-  echo "$OUTPUT"
-  exit 1
+# Пытаемся получить версии для последней Alpine
+if ! read -r OPENVPN_VERSION IPTABLES_VERSION <<< $(get_package_versions "$LATEST_ALPINE"); then
+  echo "⚠️  Failed for $LATEST_ALPINE, trying fallback to major version (without patch)..."
+  # Берём только мажорную часть (например, 3.24 вместо 3.24.1)
+  FALLBACK_MAJOR=$(echo "$LATEST_ALPINE" | cut -d. -f1,2)
+  if [ "$FALLBACK_MAJOR" != "$LATEST_ALPINE" ]; then
+    if read -r OPENVPN_VERSION IPTABLES_VERSION <<< $(get_package_versions "$FALLBACK_MAJOR"); then
+      LATEST_ALPINE="$FALLBACK_MAJOR"
+      echo "  ✅ Using fallback Alpine version: $LATEST_ALPINE"
+    else
+      echo "❌ Fallback also failed. No build will be triggered."
+      # Выходим без ошибки, но помечаем, что сборка не нужна
+      echo "should_build=false" >> $GITHUB_OUTPUT
+      exit 0
+    fi
+  else
+    echo "❌ No fallback version available. Skipping build."
+    echo "should_build=false" >> $GITHUB_OUTPUT
+    exit 0
+  fi
 fi
 
 echo "  OpenVPN : $OPENVPN_VERSION"
 echo "  iptables: $IPTABLES_VERSION"
 
-# 4) Сравниваем с текущими
+# Сравниваем с текущими версиями
 SHOULD_BUILD=false
 if [ "$current_alpine_version" != "$LATEST_ALPINE" ] || \
    [ "$current_openvpn_version" != "$OPENVPN_VERSION" ] || \
@@ -65,7 +84,7 @@ if [ "$current_alpine_version" != "$LATEST_ALPINE" ] || \
   SHOULD_BUILD=true
 fi
 
-# 5) Вывод переменных для GitHub Actions
+# Вывод для GitHub Actions
 echo "should_build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
 echo "alpine_version=$LATEST_ALPINE" >> $GITHUB_OUTPUT
 echo "openvpn_version=$OPENVPN_VERSION" >> $GITHUB_OUTPUT
