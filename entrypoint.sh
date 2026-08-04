@@ -23,8 +23,14 @@ if grep -Eq '^[[:space:]]*auth-user-pass[[:space:]]*$' "$TMP_CONFIG"; then
     fi
 fi
 
+# Создаём up-скрипт, который применит iptables после поднятия tun0
+cat > /tmp/up.sh << 'EOF'
+#!/bin/sh
 iptables -t nat -A POSTROUTING -o tun0 -j MASQUERADE
 iptables -P FORWARD ACCEPT
+echo "iptables rules for tun0 applied."
+EOF
+chmod +x /tmp/up.sh
 
 echo "Starting OpenVPN..."
 echo "Config : $CONFIG"
@@ -33,4 +39,5 @@ echo "Verb   : $VERB"
 exec openvpn \
     --config "$TMP_CONFIG" \
     --verb "$VERB" \
-    --suppress-timestamps
+    --suppress-timestamps \
+    --up /tmp/up.sh
