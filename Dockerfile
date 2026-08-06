@@ -1,6 +1,5 @@
 FROM alpine:latest
 
-# Установка OpenVPN, iptables и сетевых утилит
 RUN apk update && \
     apk upgrade && \
     apk add --no-cache \
