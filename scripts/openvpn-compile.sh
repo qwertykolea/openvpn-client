@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-set -e
+set -eu
 
 apk add --no-cache autoconf automake build-base gcc git libtool linux-headers make pkgconfig file g++ wget openssl-dev lzo lzo-dev linux-pam-dev libcap-ng libcap-ng-dev python3
 
