@@ -115,7 +115,7 @@ jobs:
 
       - name: Build and push Docker image
         if: steps.check_updates.outputs.should_build == 'true'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           # Build for common architectures: x86_64, ARM64, ARMv7, ARMv6
