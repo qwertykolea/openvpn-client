@@ -2,12 +2,12 @@
 
 set -eu
 
-# Вспомогательная функция для очистки переменных от кавычек и краевых пробелов
+# Helper: trim quotes and leading/trailing whitespace from variable values
 clean_var() {
     printf '%s' "$1" | sed 's/^[ '\''"]*//;s/[ '\''"]*$//'
 }
 
-# 1. Очистка и инициализация основных переменных
+# 1. Clean and initialize main variables
 OVPN_USER=$(clean_var "${OVPN_USER:-}")
 OVPN_PASS=$(clean_var "${OVPN_PASS:-}")
 OVPN_CONFIG=$(clean_var "${OVPN_CONFIG:-}")
@@ -21,7 +21,7 @@ OVPN_EXTRA_ARGS=$(clean_var "${OVPN_EXTRA_ARGS:-}")
 
 VERB="${OVPN_LOG_LEVEL}"
 
-# 2. Выбор конфигурационного файла (.ovpn)
+# 2. Select configuration file (.ovpn)
 if [ -n "$OVPN_CONFIG" ]; then
     if [ -f "$OVPN_CONFIG" ]; then
         CONFIG="$OVPN_CONFIG"
@@ -32,7 +32,7 @@ if [ -n "$OVPN_CONFIG" ]; then
         exit 1
     fi
 else
-    # Выбор первого .ovpn файла по алфавиту в /vpn/
+    # If not specified, pick the first .ovpn file in /vpn (alphabetical order)
     CONFIG=$(ls -1 /vpn/*.ovpn 2>/dev/null | sort | head -n 1 || true)
     if [ -z "$CONFIG" ]; then
         echo "ERROR: No .ovpn config files found in /vpn!"
@@ -42,10 +42,11 @@ fi
 
 echo "Selected config: $CONFIG"
 
+# Create temporary config copy to allow modifications
 TMP_CONFIG="/tmp/config.ovpn"
 cp "$CONFIG" "$TMP_CONFIG"
 
-# 3. Настройка авторизации (Приоритет: Переменные > Файл)
+# 3. Authentication: environment variables take priority over auth file
 AUTH_FILE=""
 if [ -n "$OVPN_USER" ] && [ -n "$OVPN_PASS" ]; then
     AUTH_FILE="/tmp/auth_env.txt"
@@ -60,7 +61,7 @@ else
     fi
 fi
 
-# Подстановка auth-user-pass в конфигурацию
+# Insert or override 'auth-user-pass' directive in config
 if [ -n "$AUTH_FILE" ]; then
     if grep -Eq '^[[:space:]]*auth-user-pass([[:space:]]+.*)?$' "$TMP_CONFIG"; then
         sed -i -E "s|^[[:space:]]*auth-user-pass.*|auth-user-pass $AUTH_FILE|" "$TMP_CONFIG"
@@ -68,18 +69,18 @@ if [ -n "$AUTH_FILE" ]; then
         echo "auth-user-pass $AUTH_FILE" >> "$TMP_CONFIG"
     fi
 else
-    # Если логин/пароль не переданы, закомментировать auth-user-pass на случай, если она зашита в .ovpn
+    # If no credentials provided, comment out any existing auth-user-pass line
     sed -i -E 's/^[[:space:]]*(auth-user-pass.*)/# \1/' "$TMP_CONFIG"
 fi
 
-# 4. Проверка и автоматическое создание TUN-устройства
+# 4. Ensure TUN device exists (required for VPN tunnel)
 if [ ! -c /dev/net/tun ]; then
     mkdir -p /dev/net
     mknod /dev/net/tun c 10 200
     chmod 600 /dev/net/tun
 fi
 
-# 5. Фоновый процесс Healthcheck (Watchdog)
+# 5. Background healthcheck watchdog: pings a host via tun0 to detect tunnel failure
 start_watchdog() {
     if [ -n "$HEALTHCHECK_HOST" ]; then
         (
@@ -89,6 +90,7 @@ start_watchdog() {
 
             echo "Watchdog started: pinging $HEALTHCHECK_HOST every ${INTERVAL}s (max fails: $MAX_FAILS)"
             
+            # Wait a bit for tunnel to establish before first check
             sleep 15
 
             while true; do
@@ -109,7 +111,7 @@ start_watchdog() {
     fi
 }
 
-# 6. Безопасное формирование /tmp/up.sh
+# 6. Generate up script (executed after tunnel is up) to set iptables NAT and routing
 cat > /tmp/up.sh << 'EOF'
 #!/bin/sh
 iptables -t nat -A POSTROUTING -o tun0 -j MASQUERADE
@@ -118,7 +120,7 @@ iptables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --cla
 echo "iptables NAT & MSS rules applied for tun0."
 EOF
 
-# Добавление правил DNS при указании OVPN_DNS_SERVER
+# If DNS servers(OVPN_DNS_SERVER variable) are provided, add them to resolv.conf and DNAT rules
 if [ -n "$OVPN_DNS_SERVER" ]; then
     CLEAN_DNS_LIST=$(echo "$OVPN_DNS_SERVER" | tr ',' ' ')
     PRIMARY_DNS=""
@@ -144,7 +146,7 @@ EOF
     fi
 fi
 
-# Пользовательский post-up хук
+# Allow custom user-defined post-up script
 cat >> /tmp/up.sh << 'EOF'
 if [ -f /vpn/post-up.sh ]; then
     echo "Executing custom script /vpn/post-up.sh..."
@@ -154,14 +156,14 @@ EOF
 
 chmod +x /tmp/up.sh
 
-# Запуск Watchdog
+# Start watchdog in background
 start_watchdog
 
 echo "Starting OpenVPN..."
 echo "Config : $CONFIG"
 echo "Verb   : $VERB"
 
-# Запуск OpenVPN
+# Launch OpenVPN with the generated config and up script
 exec openvpn \
     --config "$TMP_CONFIG" \
     --verb "$VERB" \
