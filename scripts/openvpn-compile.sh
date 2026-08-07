@@ -1,11 +1,10 @@
 #!/bin/sh
 set -e
 
-# Если переменная не задана, используем master
 if [ -z "$OPENVPN_VERSION" ]; then
     BRANCH="master"
 else
-    BRANCH="v$OPENVPN_VERSION"   # теги в репозитории с префиксом 'v'
+    BRANCH="v$OPENVPN_VERSION"
 fi
 
 apk add --no-cache \
@@ -16,7 +15,7 @@ apk add --no-cache \
 git clone --branch "$BRANCH" https://github.com/OpenVPN/openvpn.git
 cd openvpn
 autoreconf -i -v -f
-./configure --disable-dco --disable-lz4 --enable-small --disable-doc
+./configure --disable-dco --disable-lz4 --enable-small --disable-doc --disable-man
 make -j
 make install
 
