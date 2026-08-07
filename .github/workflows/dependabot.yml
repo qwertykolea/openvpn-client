@@ -1,0 +1,7 @@
+ version: 2
+ updates:
+  # Monitor GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly" # Options: daily, weekly, monthly
