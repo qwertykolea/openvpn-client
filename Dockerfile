@@ -1,5 +1,8 @@
 FROM alpine:latest
 
+ARG OPENVPN_VERSION
+ENV OPENVPN_VERSION=${OPENVPN_VERSION}
+
 RUN apk update && \
     apk upgrade && \
     apk add --no-cache \
