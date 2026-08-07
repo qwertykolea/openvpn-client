@@ -3,11 +3,14 @@ FROM alpine:latest
 RUN apk update && \
     apk upgrade && \
     apk add --no-cache \
-    openvpn \
     iptables \
     iproute2 \
     iputils && \
     rm -rf /var/cache/apk
+
+COPY scripts/ /scripts/
+
+RUN /scripts/openssh.sh
 
 ENV OVPN_LOG_LEVEL=3 \
     HEALTHCHECK_HOST="" \
