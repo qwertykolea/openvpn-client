@@ -103,7 +103,7 @@ jobs:
 
       - name: Set up Docker Buildx
         if: steps.check_updates.outputs.should_build == 'true'
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Log in to GHCR
         if: steps.check_updates.outputs.should_build == 'true'
