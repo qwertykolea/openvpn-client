@@ -1,3 +1,6 @@
+on:
+  workflow_dispatch:
+  
  version: 2
  updates:
   # Monitor GitHub Actions dependencies
