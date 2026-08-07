@@ -15,9 +15,9 @@ apk add --no-cache \
 git clone --branch "$BRANCH" https://github.com/OpenVPN/openvpn.git
 cd openvpn
 autoreconf -i -v -f
-./configure --disable-dco --disable-lz4 --enable-small --disable-doc --disable-man
+./configure --disable-dco --disable-lz4 --enable-small
 make -j
-make install
+make install-exec   # вместо make install — ставит только бинарники и библиотеки
 
 cd ..
 rm -rf openvpn
