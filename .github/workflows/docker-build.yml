@@ -1,23 +1,24 @@
 name: Build and Push OpenVPN Container
 
 on:
+# Uncomment to trigger on push to main (disabled by default)
   #push:
   #  branches: [ "main" ]
   schedule:
-    # Запуск каждое воскресенье в 00:00 UTC
+    # Weekly build every Sunday at 00:00 UTC to check for new Alpine/OpenVPN releases
     - cron: '0 0 * * 0'
   workflow_dispatch:
     inputs:
       alpine_version:
-        description: 'Кастомная версия Alpine (оставьте пустым для автоопределения)'
+        description: 'Custom Alpine version (leave empty for auto-detection)'
         required: false
         type: string
       openvpn_version:
-        description: 'Кастомная версия OpenVPN (оставьте пустым для автоопределения)'
+        description: 'Custom OpenVPN version (leave empty for auto-detection)'
         required: false
         type: string
       force_build:
-        description: 'Принудительная сборка (игнорировать проверку версий)'
+        description: 'Force build ignoring version checks'
         required: false
         type: boolean
         default: false
@@ -30,8 +31,8 @@ jobs:
   check-and-build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Требуется для автоматического обновления файла current_versions
-      packages: write
+      contents: write  # needed to update current_versions file after successful build
+      packages: write  # needed to push to GHCR
 
     steps:
       - name: Checkout repository
@@ -45,18 +46,18 @@ jobs:
             echo "alpine=$current_alpine_version" >> $GITHUB_OUTPUT
             echo "openvpn=$current_openvpn_version" >> $GITHUB_OUTPUT
           else
-            echo "Ошибка: Файл current_versions не найден!"
+            echo "Error: current_versions file not found!"
             exit 1
           fi
 
       - name: Check for new upstream versions
         id: check_updates
         run: |
-         # 1. Определение целевой версии Alpine
+          # 1. Determine target Alpine version (use custom if provided, else fetch latest stable tag from Docker Hub)
          if [ -n "${{ github.event.inputs.alpine_version }}" ]; then
            NEW_ALPINE="${{ github.event.inputs.alpine_version }}"
          else
-          # Берем 100 последних тегов, фильтруем по формату X.Y.Z, сортируем как версии по убыванию и берем самую свежую
+          # Fetch last 100 tags, filter semantic versions (X.Y.Z), sort and pick the newest
           NEW_ALPINE=$(curl -s "https://registry.hub.docker.com/v2/repositories/library/alpine/tags?page_size=100" \
             | jq -r '.results[].name' \
             | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' \
@@ -64,37 +65,38 @@ jobs:
             | head -n 1)
          fi
 
-          # 2. Определение целевой версии OpenVPN
+          # 2. Determine target OpenVPN version (use custom if provided, else fetch latest release from GitHub)
          if [ -n "${{ github.event.inputs.openvpn_version }}" ]; then
           NEW_OPENVPN="${{ github.event.inputs.openvpn_version }}"
          else
-         # ИДЕЯ (Пункт 5): Добавлен GITHUB_TOKEN в заголовок, чтобы не поймать Rate Limit, как это было с iptables!
+          # Use GITHUB_TOKEN to avoid rate limits when querying GitHub API
           NEW_OPENVPN=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/OpenVPN/openvpn/releases/latest" \
              | jq -r '.tag_name' \
              | sed 's/^v//')
          fi
           
 
-          # Запись определенных версий в outputs
+          # Store target versions for later steps
           echo "target_alpine=${NEW_ALPINE:-1}" >> $GITHUB_OUTPUT
           echo "target_openvpn=${NEW_OPENVPN:-1}" >> $GITHUB_OUTPUT
 
-          # Логика сравнения
+          # Decide whether to build: force_build or any version differs from current
           SHOULD_BUILD="false"
           
           if [ "${{ github.event.inputs.force_build }}" == "true" ]; then
-            echo "Принудительный запуск сборки через workflow_dispatch."
+            echo "Forced build via workflow_dispatch."
           SHOULD_BUILD="true"
           elif [ "$NEW_ALPINE" != "${{ steps.current_vers.outputs.alpine }}" ] || \
                [ "$NEW_OPENVPN" != "${{ steps.current_vers.outputs.openvpn }}" ]; then
-           echo "Обнаружены новые версии компонент!"
+           echo "New versions detected!"
           SHOULD_BUILD="true"
           else
-          echo "Все версии актуальны. Сборка не требуется."
+          echo "All versions up-to-date. Build skipped."
           fi
 
          echo "should_build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
-
+         
+           # Only proceed if build is needed
       - name: Set up QEMU (for multi-arch)
         if: steps.check_updates.outputs.should_build == 'true'
         uses: docker/setup-qemu-action@v3
@@ -116,7 +118,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          # Все ARM-архитектуры + стандартный x86_64
+          # Build for common architectures: x86_64, ARM64, ARMv7, ARMv6
           platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6
           push: true
           build-args: |
@@ -126,11 +128,12 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:alpine-${{ steps.check_updates.outputs.target_alpine }}-openvpn-${{ steps.check_updates.outputs.target_openvpn }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.check_updates.outputs.target_openvpn }}
-          provenance: false
+          provenance: false  # disable provenance attestation to keep build simple
 
       - name: Update current_versions file in repository
         if: steps.check_updates.outputs.should_build == 'true'
         run: |
+          # Write new versions to file so next run can compare correctly
           cat <<EOF > current_versions
           current_alpine_version=${{ steps.check_updates.outputs.target_alpine }}
           current_openvpn_version=${{ steps.check_updates.outputs.target_openvpn }}
