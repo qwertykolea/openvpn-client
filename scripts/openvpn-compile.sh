@@ -29,15 +29,15 @@ autoreconf -i -v -f
 # - build date in UTC, formatted as "7 Aug 2026 14:56 UTC"
 # - append repository URL
 ARCH=$(uname -m)
-OS=$(grep -E '^ID=' /etc/os-release)
-OS_v=$(grep -E '^VERSION_ID=' /etc/os-release)
+OS=$(grep -E '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
+OS_V=$(grep -E '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
 REPO="https://github.com/qwertykolea/openvpn-client"
 DATE=$(date -u '+%d %b %Y %H:%M UTC')
-VERSION_STRING="OpenVPN ${OPENVPN_VERSION} ${ARCH}-${OS}-linux-v${OS_v}-musl [SSL (OpenSSL)] [LZO] [EPOLL] [MH/PKTINFO] [AEAD] built on ${DATE} | ${REPO}"
+VERSION_STRING="OpenVPN ${OPENVPN_VERSION} ${ARCH}-${OS}-linux-v${OS_V}-musl [SSL (OpenSSL)] [LZO] [EPOLL] [MH/PKTINFO] [AEAD] built on ${DATE} | ${REPO}"
 
-# Override PACKAGE_STRING and GIT_VERSION using perl (safe with special chars)
-perl -pi -e "s/^PACKAGE_STRING=.*/PACKAGE_STRING='$VERSION_STRING'/" configure
-perl -pi -e "s/^GIT_VERSION=.*/GIT_VERSION=\"\"/" configure
+# Override PACKAGE_STRING and GIT_VERSION using perl with safe delimiter '#'
+perl -pi -e "s#^PACKAGE_STRING=.*#PACKAGE_STRING='$VERSION_STRING'#" configure
+perl -pi -e "s#^GIT_VERSION=.*#GIT_VERSION=\"\"#" configure
 # ------------------------------------------------------------
 
 # Configure: disable DCO and LZ4, enable small build
