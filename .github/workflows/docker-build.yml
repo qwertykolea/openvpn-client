@@ -54,26 +54,26 @@ jobs:
         id: check_updates
         run: |
           # 1. Determine target Alpine version (use custom if provided, else fetch latest stable tag from Docker Hub)
-         if [ -n "${{ github.event.inputs.alpine_version }}" ]; then
+          if [ -n "${{ github.event.inputs.alpine_version }}" ]; then
            NEW_ALPINE="${{ github.event.inputs.alpine_version }}"
-         else
+          else
           # Fetch last 100 tags, filter semantic versions (X.Y.Z), sort and pick the newest
           NEW_ALPINE=$(curl -s "https://registry.hub.docker.com/v2/repositories/library/alpine/tags?page_size=100" \
             | jq -r '.results[].name' \
             | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' \
             | sort -V -r \
             | head -n 1)
-         fi
+          fi
 
           # 2. Determine target OpenVPN version (use custom if provided, else fetch latest release from GitHub)
-         if [ -n "${{ github.event.inputs.openvpn_version }}" ]; then
+          if [ -n "${{ github.event.inputs.openvpn_version }}" ]; then
           NEW_OPENVPN="${{ github.event.inputs.openvpn_version }}"
-         else
+          else
           # Use GITHUB_TOKEN to avoid rate limits when querying GitHub API
           NEW_OPENVPN=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/OpenVPN/openvpn/releases/latest" \
              | jq -r '.tag_name' \
              | sed 's/^v//')
-         fi
+          fi
           
 
           # Store target versions for later steps
@@ -93,8 +93,8 @@ jobs:
           else
           echo "All versions up-to-date. Build skipped."
           fi
-
-         echo "should_build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
+          
+          echo "should_build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
          
            # Only proceed if build is needed
       - name: Set up QEMU (for multi-arch)
