@@ -43,6 +43,9 @@ perl -pi -e "s#^GIT_VERSION=.*#GIT_VERSION=\"\"#" configure
 # Configure: disable DCO and LZ4, enable small build
 ./configure --disable-dco --disable-lz4 --enable-small
 
+# Also clear GIT_VERSION in config.h to be absolutely sure
+perl -pi -e 's/#define GIT_VERSION ".*"/#define GIT_VERSION ""/' config.h
+
 # Compile using all available CPU cores
 make -j
 
