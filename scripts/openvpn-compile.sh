@@ -33,11 +33,7 @@ DATE=$(date -u '+%d %b %Y %H:%M UTC')
 REPO="https://github.com/qwertykolea/openvpn-client"
 
 # 3. Внедряем версию Alpine OS в TARGET_ALIAS прямо в сгенерированный config.h
-sed -i "s|#define TARGET_ALIAS .*|#define TARGET_ALIAS \"${ARCH}-alpine-linux-v${OS_V}-musl\"|" config.h
-
-# 4. Точечно патчим исходный код options.c: заменяем стандартный макрос 
-#    __DATE__ на нашу кастомную строку с датой и ссылкой на GitHub
-sed -i "s@\" built on \" __DATE__@\" built on ${DATE} | ${REPO}\"@" src/openvpn/options.c
+sed -i "s|#define TARGET_ALIAS .*|#define TARGET_ALIAS \"${ARCH}-alpine-linux-v${OS_V}-musl | built on ${DATE} | ${REPO}\"|" config.h
 # -----------------------------
 
 # Compile using all available CPU cores
