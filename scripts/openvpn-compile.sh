@@ -37,7 +37,7 @@ sed -i "s|#define TARGET_ALIAS .*|#define TARGET_ALIAS \"${ARCH}-alpine-linux-v$
 
 # 4. Точечно патчим исходный код options.c: заменяем стандартный макрос 
 #    __DATE__ на нашу кастомную строку с датой и ссылкой на GitHub
-sed -i "s|\" built on \" __DATE__|\" built on ${DATE} | ${REPO}\"|" src/openvpn/options.c
+sed -i "s@\" built on \" __DATE__@\" built on ${DATE} | ${REPO}\"@" src/openvpn/options.c
 # -----------------------------
 
 # Compile using all available CPU cores
