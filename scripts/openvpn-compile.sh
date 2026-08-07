@@ -34,8 +34,15 @@ REPO="https://github.com/qwertykolea/openvpn-client"
 DATE=$(date -u '+%d %b %Y %H:%M UTC')
 VERSION_STRING="OpenVPN ${OPENVPN_VERSION} ${ARCH}-${OS}-linux-v${OS_v}-musl [SSL (OpenSSL)] [LZO] [EPOLL] [MH/PKTINFO] [AEAD] built on ${DATE} | ${REPO}"
 
-# Configure: disable DCO and LZ4, enable small build, override version string
-./configure --disable-dco --disable-lz4 --enable-small --with-version-string="$VERSION_STRING"
+# Override PACKAGE_STRING in configure script (this is what 'openvpn --version' prints)
+sed -i "s|^PACKAGE_STRING=.*|PACKAGE_STRING='${VERSION_STRING}'|" configure
+
+# Remove GIT_VERSION to suppress '[git:HEAD/...]' suffix
+sed -i 's|^GIT_VERSION=.*|GIT_VERSION=""|' configure
+# ------------------------------------------------------------
+
+# Configure: disable DCO and LZ4, enable small build
+./configure --disable-dco --disable-lz4 --enable-small
 
 # Compile using all available CPU cores
 make -j
