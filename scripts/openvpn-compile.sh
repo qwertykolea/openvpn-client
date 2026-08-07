@@ -18,40 +18,27 @@ apk add --no-cache \
 git clone --branch "$BRANCH" https://github.com/OpenVPN/openvpn.git
 cd openvpn
 
+#Remove git folder
+rm -rf .git
 # Generate build system files
 autoreconf -i -v -f
 
-# ------------------------------------------------------------
-# Build custom version string:
-# - architecture from uname -m (works correctly under QEMU multi-arch)
-# - OS from /etc/os-release
-# - OS version/build from /etc/os-release
-# - build date in UTC, formatted as "7 Aug 2026 14:56 UTC"
-# - append repository URL
-ARCH=$(uname -m)
-OS=$(grep -E '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
-OS_V=$(grep -E '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
-REPO="https://github.com/qwertykolea/openvpn-client"
-DATE=$(date -u '+%d %b %Y %H:%M UTC')
-VERSION_STRING="OpenVPN ${OPENVPN_VERSION} ${ARCH}-${OS}-linux-v${OS_V}-musl [SSL (OpenSSL)] [LZO] [EPOLL] [MH/PKTINFO] [AEAD] built on ${DATE} | ${REPO}"
-
-# Override PACKAGE_STRING in configure (so config.h gets the right value)
-perl -pi -e "s#^PACKAGE_STRING=.*#PACKAGE_STRING='$VERSION_STRING'#" configure
-
-# Completely replace version.c.in to output only PACKAGE_STRING (no git, no extra line)
-cat > src/openvpn/version.c.in <<'EOF'
-#include "config.h"
-#include "version.h"
-
-void show_versions(void)
-{
-    printf("%s\n", PACKAGE_STRING);
-}
-EOF
-# ------------------------------------------------------------
-
 # Configure: disable DCO and LZ4, enable small build
-./configure --disable-dco --disable-lz4 --enable-small
+./configure --disable-dco --disable-pkcs11 --disable-lz4 --enable-small
+
+# --- ПРОДОЛЖЕНИЕ ТЮНИНГА ---
+ARCH=$(uname -m)
+OS_V=$(grep -E '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
+DATE=$(date -u '+%d %b %Y %H:%M UTC')
+REPO="https://github.com/qwertykolea/openvpn-client"
+
+# 3. Внедряем версию Alpine OS в TARGET_ALIAS прямо в сгенерированный config.h
+sed -i "s|#define TARGET_ALIAS .*|#define TARGET_ALIAS \"${ARCH}-alpine-linux-v${OS_V}-musl\"|" config.h
+
+# 4. Точечно патчим исходный код options.c: заменяем стандартный макрос 
+#    __DATE__ на нашу кастомную строку с датой и ссылкой на GitHub
+sed -i "s|\" built on \" __DATE__|\" built on ${DATE} | ${REPO}\"|" src/openvpn/options.c
+# -----------------------------
 
 # Compile using all available CPU cores
 make -j
