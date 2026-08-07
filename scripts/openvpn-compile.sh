@@ -35,9 +35,18 @@ REPO="https://github.com/qwertykolea/openvpn-client"
 DATE=$(date -u '+%d %b %Y %H:%M UTC')
 VERSION_STRING="OpenVPN ${OPENVPN_VERSION} ${ARCH}-${OS}-linux-v${OS_V}-musl [SSL (OpenSSL)] [LZO] [EPOLL] [MH/PKTINFO] [AEAD] built on ${DATE} | ${REPO}"
 
-# Override PACKAGE_STRING and GIT_VERSION via CFLAGS.
-# This ensures the macros are redefined for all source files.
-export CFLAGS="-DPACKAGE_STRING=\\\"$VERSION_STRING\\\" -DGIT_VERSION=\\\"\\\""
+# Override PACKAGE_STRING in configure (for config.h generation)
+perl -pi -e "s#^PACKAGE_STRING=.*#PACKAGE_STRING='$VERSION_STRING'#" configure
+
+# Replace version.c with a custom one that only outputs PACKAGE_STRING (one line only)
+cat > src/openvpn/version.c <<'EOF'
+#include "config.h"
+#include "version.h"
+
+void show_versions(void) {
+    printf("%s\n", PACKAGE_STRING);
+}
+EOF
 # ------------------------------------------------------------
 
 # Configure: disable DCO and LZ4, enable small build
