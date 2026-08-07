@@ -28,11 +28,11 @@ autoreconf -i -v -f
 # - build date in UTC, formatted as "7 Aug 2026 14:56 UTC"
 # - append repository URL
 ARCH=$(uname -m)
-OS=$(grep -E '^NAME=|^VERSION=' /etc/os-release)
-OS_v=$(grep -E '^VERSION_ID' /etc/os-release)
+OS=$(grep -E '^ID=' /etc/os-release)
+OS_v=$(grep -E '^VERSION_ID=' /etc/os-release)
 REPO="https://github.com/qwertykolea/openvpn-client"
 DATE=$(date -u '+%d %b %Y %H:%M UTC')
-VERSION_STRING="OpenVPN ${OPENVPN_VERSION} ${ARCH}-${OS} v${OS_v}-linux-musl [SSL (OpenSSL)] [LZO] [EPOLL] [MH/PKTINFO] [AEAD] built on ${DATE} | ${REPO}"
+VERSION_STRING="OpenVPN ${OPENVPN_VERSION} ${ARCH}-${OS}-linux-v${OS_v}-musl [SSL (OpenSSL)] [LZO] [EPOLL] [MH/PKTINFO] [AEAD] built on ${DATE} | ${REPO}"
 
 # Configure: disable DCO and LZ4, enable small build, override version string
 ./configure --disable-dco --disable-lz4 --enable-small --with-version-string="$VERSION_STRING"
