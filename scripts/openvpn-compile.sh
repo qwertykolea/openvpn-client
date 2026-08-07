@@ -26,14 +26,20 @@ autoreconf -i -v -f
 # Configure: disable DCO and LZ4, enable small build
 ./configure --disable-dco --disable-pkcs11 --disable-lz4 --enable-small
 
-# --- ПРОДОЛЖЕНИЕ ТЮНИНГА ---
+# ------------------------------------------------------------
+# Build custom version string:
+# - architecture from uname -m (works correctly under QEMU multi-arch)
+# - OS from /etc/os-release
+# - OS version/build from /etc/os-release
+# - build date in UTC, formatted as "7 Aug 2026 14:56 UTC"
+# - append repository URL
 ARCH=$(uname -m)
+OS=$(grep -E '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
 OS_V=$(grep -E '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
 DATE=$(date -u '+%d %b %Y %H:%M UTC')
 REPO="https://github.com/qwertykolea/openvpn-client"
 
-# 3. Внедряем версию Alpine OS в TARGET_ALIAS прямо в сгенерированный config.h
-sed -i "s|#define TARGET_ALIAS .*|#define TARGET_ALIAS \"${ARCH}-alpine-linux-v${OS_V}-musl | built on ${DATE} | ${REPO}\"|" config.h
+sed -i "s@#define TARGET_ALIAS .*@#define TARGET_ALIAS \"${ARCH}-${OS}-linux-v${OS_V}-musl | built on ${DATE} | ${REPO}\"@" config.h
 # -----------------------------
 
 # Compile using all available CPU cores
