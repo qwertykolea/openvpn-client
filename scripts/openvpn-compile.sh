@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-# Determine which branch/tag to clone: use OPENVPN_VERSION if set, else master
+# Use OPENVPN_VERSION to select branch/tag; fallback to master
 if [ -z "$OPENVPN_VERSION" ]; then
     BRANCH="master"
 else
@@ -21,8 +21,21 @@ cd openvpn
 # Generate build system files
 autoreconf -i -v -f
 
-# Configure: disable DCO (not useful in container), LZ4 (optional), enable small build
-./configure --disable-dco --disable-lz4 --enable-small
+# Build custom version string:
+# - architecture from uname -m (works correctly under QEMU multi-arch)
+# - OS from /etc/os-release
+# - OS version/build from /etc/os-release
+# - build date in UTC, formatted as "7 Aug 2026 14:56 UTC"
+# - append repository URL
+ARCH=$(uname -m)
+OS=$(grep -E '^NAME=|^VERSION=' /etc/os-release)
+OS_v=$(grep -E '^VERSION_ID' /etc/os-release)
+REPO="https://github.com/qwertykolea/openvpn-client"
+DATE=$(date -u '+%d %b %Y %H:%M UTC')
+VERSION_STRING="OpenVPN ${OPENVPN_VERSION} ${ARCH}-${OS} v${OS_v}-linux-musl [SSL (OpenSSL)] [LZO] [EPOLL] [MH/PKTINFO] [AEAD] built on ${DATE} | ${REPO}"
+
+# Configure: disable DCO and LZ4, enable small build, override version string
+./configure --disable-dco --disable-lz4 --enable-small --with-version-string="$VERSION_STRING"
 
 # Compile using all available CPU cores
 make -j
