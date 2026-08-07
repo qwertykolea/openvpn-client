@@ -35,15 +35,16 @@ REPO="https://github.com/qwertykolea/openvpn-client"
 DATE=$(date -u '+%d %b %Y %H:%M UTC')
 VERSION_STRING="OpenVPN ${OPENVPN_VERSION} ${ARCH}-${OS}-linux-v${OS_V}-musl [SSL (OpenSSL)] [LZO] [EPOLL] [MH/PKTINFO] [AEAD] built on ${DATE} | ${REPO}"
 
-# Override PACKAGE_STRING in configure (for config.h generation)
+# Override PACKAGE_STRING in configure (so config.h gets the right value)
 perl -pi -e "s#^PACKAGE_STRING=.*#PACKAGE_STRING='$VERSION_STRING'#" configure
 
-# Replace version.c with a custom one that only outputs PACKAGE_STRING (one line only)
-cat > src/openvpn/version.c <<'EOF'
+# Completely replace version.c.in to output only PACKAGE_STRING (no git, no extra line)
+cat > src/openvpn/version.c.in <<'EOF'
 #include "config.h"
 #include "version.h"
 
-void show_versions(void) {
+void show_versions(void)
+{
     printf("%s\n", PACKAGE_STRING);
 }
 EOF
