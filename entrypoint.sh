@@ -122,7 +122,7 @@ EOF
 
 # If DNS servers(OVPN_DNS_SERVER variable) are provided, add them to resolv.conf and DNAT rules
 if [ -n "$OVPN_DNS_SERVER" ]; then
-    CLEAN_DNS_LIST=$(echo "$OVPN_DNS_SERVER" | tr ',' ';' ' ')
+    CLEAN_DNS_LIST=$(echo "$OVPN_DNS_SERVER" | tr ',;' ' ')
     PRIMARY_DNS=""
     DNS_ENTRIES=""
 
