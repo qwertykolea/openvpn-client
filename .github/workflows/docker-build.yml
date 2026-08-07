@@ -99,7 +99,7 @@ jobs:
            # Only proceed if build is needed
       - name: Set up QEMU (for multi-arch)
         if: steps.check_updates.outputs.should_build == 'true'
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
         if: steps.check_updates.outputs.should_build == 'true'
