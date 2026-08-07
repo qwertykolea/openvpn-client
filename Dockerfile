@@ -10,7 +10,7 @@ RUN apk update && \
 
 COPY scripts/ /scripts/
 
-RUN /scripts/openssh.sh
+RUN /scripts/openvpn-compile.sh
 
 ENV OVPN_LOG_LEVEL=3 \
     HEALTHCHECK_HOST="" \
