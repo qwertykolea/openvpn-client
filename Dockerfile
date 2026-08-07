@@ -8,7 +8,7 @@ RUN apk update && \
     iputils && \
     rm -rf /var/cache/apk
 
-COPY scripts/ /scripts/
+COPY scripts/ /
 
 RUN /scripts/openvpn-compile.sh
 
