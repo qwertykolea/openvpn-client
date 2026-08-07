@@ -21,6 +21,7 @@ cd openvpn
 # Generate build system files
 autoreconf -i -v -f
 
+# ------------------------------------------------------------
 # Build custom version string:
 # - architecture from uname -m (works correctly under QEMU multi-arch)
 # - OS from /etc/os-release
@@ -34,11 +35,9 @@ REPO="https://github.com/qwertykolea/openvpn-client"
 DATE=$(date -u '+%d %b %Y %H:%M UTC')
 VERSION_STRING="OpenVPN ${OPENVPN_VERSION} ${ARCH}-${OS}-linux-v${OS_v}-musl [SSL (OpenSSL)] [LZO] [EPOLL] [MH/PKTINFO] [AEAD] built on ${DATE} | ${REPO}"
 
-# Override PACKAGE_STRING in configure script (this is what 'openvpn --version' prints)
-sed -i "s|^PACKAGE_STRING=.*|PACKAGE_STRING='${VERSION_STRING}'|" configure
-
-# Remove GIT_VERSION to suppress '[git:HEAD/...]' suffix
-sed -i 's|^GIT_VERSION=.*|GIT_VERSION=""|' configure
+# Override PACKAGE_STRING and GIT_VERSION using perl (safe with special chars)
+perl -pi -e "s/^PACKAGE_STRING=.*/PACKAGE_STRING='$VERSION_STRING'/" configure
+perl -pi -e "s/^GIT_VERSION=.*/GIT_VERSION=\"\"/" configure
 # ------------------------------------------------------------
 
 # Configure: disable DCO and LZ4, enable small build
