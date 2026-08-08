@@ -7,9 +7,11 @@ CLEAN_VERSION="${OPENVPN_VERSION#v}"
 
 # Устанавливаем зависимости для сборки.
 # ВНИМАНИЕ: git, autoconf и automake БОЛЬШЕ НЕ НУЖНЫ!
+apk add --no-cache lzo libcap-ng openssl
+
 apk add --no-cache --virtual .openvpn-builddeps \
-  build-base libtool linux-headers pkgconfig libcap-ng-dev linux-pam-dev \
-  openssl-dev lzo lzo-dev curl
+  build-base libtool linux-headers pkgconfig \
+  libcap-ng-dev linux-pam-dev openssl-dev lzo-dev curl
 
 # Скачиваем и распаковываем официальный tarball
 # CDN swupdate.openvpn.org хранит уже подготовленные релизы со скриптом configure
@@ -35,7 +37,8 @@ cd "openvpn-${CLEAN_VERSION}"
   --disable-multihome \
   --disable-port-share \
   --disable-socks \
-  --disable-http-proxy
+  --disable-http-proxy \
+  --disable-pam
 
 # ------------------------------------------------------------
 # Build custom version string:
