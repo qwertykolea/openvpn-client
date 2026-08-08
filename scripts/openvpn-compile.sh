@@ -1,27 +1,25 @@
 #!/bin/sh
 set -e
 
-# OPENVPN_VERSION приходит из CI (например, "v2.6.12")
-# Убираем префикс 'v', чтобы получить "2.6.12" для имени файла
+# Use OPENVPN_VERSION
 CLEAN_VERSION="${OPENVPN_VERSION#v}"
 
-# Устанавливаем зависимости для сборки.
-# ВНИМАНИЕ: git, autoconf и automake БОЛЬШЕ НЕ НУЖНЫ!
+# Install build dependencies
+
 apk add --no-cache lzo libcap-ng openssl lz4-libs
 
+# Install build temp dependencies
 apk add --no-cache --virtual .openvpn-builddeps \
   build-base libtool linux-headers pkgconfig \
   libcap-ng-dev lz4-dev linux-pam-dev openssl-dev lzo-dev curl
 
-# Скачиваем и распаковываем официальный tarball
-# CDN swupdate.openvpn.org хранит уже подготовленные релизы со скриптом configure
+# Clone OpenVPN tarball(.tar.gz) from official repo
 echo "Downloading OpenVPN ${CLEAN_VERSION} tarball..."
 curl -fSL "https://github.com/OpenVPN/openvpn/releases/download/v${CLEAN_VERSION}/openvpn-${CLEAN_VERSION}.tar.gz" | tar xz
 
-
 cd "openvpn-${CLEAN_VERSION}"
 
-# autoreconf НЕ НУЖЕН! Сразу запускаем configure
+# Configure: disable DCO,etc, enable small build
 ./configure \
   --prefix=/usr \
   --sysconfdir=/etc \
@@ -42,6 +40,11 @@ cd "openvpn-${CLEAN_VERSION}"
 
 # ------------------------------------------------------------
 # Build custom version string:
+# - architecture from uname -m (works correctly under QEMU multi-arch)
+# - OS from /etc/os-release
+# - OS version/build from /etc/os-release
+# - build date in UTC, formatted as "7 Aug 2026 14:56 UTC"
+# - append repository URL
 ARCH=$(uname -m)
 OS=$(grep -E '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
 OS_V=$(grep -E '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
@@ -51,16 +54,10 @@ REPO="https://github.com/qwertykolea/openvpn-client"
 sed -i "s@#define TARGET_ALIAS .*@#define TARGET_ALIAS \"${ARCH}-${OS}-linux-v${OS_V}-musl built on ${DATE} | ${REPO} |\"@" config.h
 # -----------------------------
 
-# Безопасный подсчет ядер для make (в Alpine нет nproc по умолчанию)
-# Для QEMU arm/v6 лучше не ставить больше 2, иначе может быть OOM (Out of Memory)
-JOBS=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || echo 2)
-if [ "$ARCH" = "armv6l" ] || [ "$ARCH" = "armv7l" ]; then
-  JOBS=2 # Ограничиваем для ARM под QEMU
-fi
+# Compile using all available CPU cores
+make -j
 
-make -j"$JOBS"
-
-# Install only executables
+# Install only executables and libraries (skip man pages/doc to avoid missing file errors)
 make install-exec
 
 # Clean up source to save space
@@ -70,4 +67,4 @@ rm -rf "openvpn-${CLEAN_VERSION}"
 # Remove build-only dependencies
 apk del .openvpn-builddeps
 
-echo "bump"
+echo "bump" # simple marker to confirm script completed
