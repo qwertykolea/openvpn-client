@@ -1,4 +1,5 @@
-FROM alpine:latest
+ARG ALPINE_VERSION
+FROM alpine:${ALPINE_VERSION}
 
 # OpenVPN version is passed as build-arg and set as environment variable
 ARG OPENVPN_VERSION
