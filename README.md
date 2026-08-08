@@ -74,9 +74,9 @@ services:
       - /dev/net/tun
     volumes:
       - ./config.ovpn:/vpn/config.ovpn
-      - ./auth.txt:/vpn/auth.txt
+      - ./auth.txt:/vpn/auth.txt # or environment OVPN_USER/OVPN_PASS
     environment:
-      - OVPN_USER=username
+      - OVPN_USER=username # or auth.txt
       - OVPN_PASS=password
       - OVPN_DNS_SERVERS=8.8.8.8 1.1.1.1
       - HEALTHCHECK_HOST=1.1.1.1
