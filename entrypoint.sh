@@ -10,25 +10,25 @@ clean_var() {
 # 1. Clean and initialize main variables
 OVPN_USER=$(clean_var "${OVPN_USER:-}")
 OVPN_PASS=$(clean_var "${OVPN_PASS:-}")
-OVPN_CONFIG=$(clean_var "${OVPN_CONFIG:-}")
+OVPN_CONFIG_NAME=$(clean_var "${OVPN_CONFIG_NAME:-}")
 OVPN_AUTH_FILE=$(clean_var "${OVPN_AUTH_FILE:-}")
 OVPN_LOG_LEVEL=$(clean_var "${OVPN_LOG_LEVEL:-${VPN_LOG_LEVEL:-3}}")
 HEALTHCHECK_HOST=$(clean_var "${HEALTHCHECK_HOST:-}")
 HEALTHCHECK_INTERVAL=$(clean_var "${HEALTHCHECK_INTERVAL:-30}")
 HEALTHCHECK_MAX_FAILS=$(clean_var "${HEALTHCHECK_MAX_FAILS:-3}")
-OVPN_DNS_SERVER=$(clean_var "${OVPN_DNS_SERVER:-}")
+OVPN_DNS_SERVERS=$(clean_var "${OVPN_DNS_SERVERS:-}")
 OVPN_EXTRA_ARGS=$(clean_var "${OVPN_EXTRA_ARGS:-}")
 
 VERB="${OVPN_LOG_LEVEL}"
 
 # 2. Select configuration file (.ovpn)
-if [ -n "$OVPN_CONFIG" ]; then
-    if [ -f "$OVPN_CONFIG" ]; then
-        CONFIG="$OVPN_CONFIG"
-    elif [ -f "/vpn/$OVPN_CONFIG" ]; then
-        CONFIG="/vpn/$OVPN_CONFIG"
+if [ -n "$OVPN_CONFIG_NAME" ]; then
+    if [ -f "$OVPN_CONFIG_NAME" ]; then
+        CONFIG="$OVPN_CONFIG_NAME"
+    elif [ -f "/vpn/$OVPN_CONFIG_NAME" ]; then
+        CONFIG="/vpn/$OVPN_CONFIG_NAME"
     else
-        echo "ERROR: Specified config '$OVPN_CONFIG' not found!"
+        echo "ERROR: Specified config '$OVPN_CONFIG_NAME' not found!"
         exit 1
     fi
 else
@@ -120,9 +120,9 @@ iptables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --cla
 echo "iptables NAT & MSS rules applied for tun0."
 EOF
 
-# If DNS servers(OVPN_DNS_SERVER variable) are provided, add them to resolv.conf and DNAT rules
-if [ -n "$OVPN_DNS_SERVER" ]; then
-    CLEAN_DNS_LIST=$(echo "$OVPN_DNS_SERVER" | tr ',;' ' ')
+# If DNS servers(OVPN_DNS_SERVERS variable) are provided, add them to resolv.conf and DNAT rules
+if [ -n "$OVPN_DNS_SERVERS" ]; then
+    CLEAN_DNS_LIST=$(echo "$OVPN_DNS_SERVERS" | tr ',;' ' ')
     PRIMARY_DNS=""
     DNS_ENTRIES=""
 
