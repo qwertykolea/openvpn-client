@@ -101,9 +101,8 @@ start_watchdog() {
                     FAILS=$((FAILS + 1))
                     echo "WARNING: Healthcheck failed ($FAILS/$MAX_FAILS) for host $HEALTHCHECK_HOST"
                     if [ "$FAILS" -ge "$MAX_FAILS" ]; then
-                        echo "CRITICAL: VPN tunnel dead. Killing container for restart..."
-                        pkill -9 openvpn || true
-                        exit 1
+                        echo "CRITICAL: VPN tunnel dead. Rebooting container..."
+                        reboot
                     fi
                 fi
             done
