@@ -370,9 +370,9 @@ Common causes:
 - Missing `/dev/net/tun` – use `--device /dev/net/tun` or `privileged: true`. # not relevant for `routeros`
 
 ### No network through VPN
-| Docker | routeros |
+| Docker | ` routeros ` |
 |-------------|---------|
-|- Verify `tun0` exists: `docker exec openvpn-client ip addr show tun0` | not relevant for `routeros`|
+|Verify `tun0` exists: `docker exec openvpn-client ip addr show tun0` | `container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] ` ` # ip addr show tun0 ` |
 - `routeros`: `container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] `
 - Check routing: `docker exec openvpn-client ip route` # not relevant for `routeros`
 - Inspect iptables NAT rules: `docker exec openvpn-client iptables -t nat -L -n` # not relevant for `routeros`
