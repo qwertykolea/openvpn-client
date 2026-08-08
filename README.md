@@ -316,7 +316,7 @@ docker build \
 - Installs only executables and libraries ( `make install-exec` ) – skips man pages and docs.
 - Cleans up build dependencies to keep the final image small.
 
-```markdown
+
 ## CI/CD Pipeline (GitHub Actions)
 
 The workflow (`.github/workflows/docker-build.yml`) does the following:
@@ -347,7 +347,69 @@ The workflow (`.github/workflows/docker-build.yml`) does the following:
 ## Version Information
 
 The compiled OpenVPN binary shows a custom version string (e.g., `openvpn --version`):
+`OpenVPN 2.6.12 linux-armv7l-alpine-linux-v3.20-musl built on 7 Aug 2026 14:56 UTC | https://github.com/qwertykolea/openvpn-client | [SSL (OpenSSL)] [LZO] [LZ4] [EPOLL] [MH/PKTINFO] [AEAD]`
 
+This includes:
+- Architecture
+- OS and version
+- Build date (UTC)
+- Repository URL for traceability
+
+---
+
+## Troubleshooting
+
+### Container exits immediately
+
+Check logs: `docker logs openvpn-client`
+
+Common causes:
+- Missing `.ovpn` file in `/vpn/` or invalid `OVPN_CONFIG_NAME`.
+- Missing credentials (both env vars and auth file absent).
+- Missing `/dev/net/tun` – use `--device /dev/net/tun` or `privileged: true`.
+
+### No network through VPN
+
+- Verify `tun0` exists: `docker exec openvpn-client ip addr show tun0`
+- Check routing: `docker exec openvpn-client ip route`
+- Inspect iptables NAT rules: `docker exec openvpn-client iptables -t nat -L -n`
+
+### Healthcheck keeps rebooting
+
+- Ensure `HEALTHCHECK_HOST` is reachable via `tun0`. Test manually: `docker exec openvpn-client ping -I tun0 1.1.1.1`
+- Increase `HEALTHCHECK_INTERVAL` or `HEALTHCHECK_MAX_FAILS` if the host is slow to respond.
+
+### DNS not working
+
+- Verify `OVPN_DNS_SERVERS` is set and properly parsed.
+- Check DNAT rules: `docker exec openvpn-client iptables -t nat -L PREROUTING -n`
+- Check `/etc/resolv.conf` inside the container.
+
+### Custom script not running
+
+- Ensure `/vpn/post-up.sh` exists and is executable (`chmod +x`).
+- Add `set -x` at the top of the script to debug; errors are ignored (`|| true`), but output goes to logs.
+
+---
+
+## License
+
+MIT License – see the [LICENSE](https://github.com/qwertykolea/openvpn-client/blob/main/LICENSE) file.
+
+---
+
+## Contributing
+
+Issues and PRs are welcome. Please keep compatibility with MikroTik and all target architectures. Update the README and relevant scripts when adding features.
+
+---
+
+## Links
+
+- [GitHub Repository](https://github.com/qwertykolea/openvpn-client)
+- [OpenVPN Official Site](https://openvpn.net/)
+- [MikroTik Container Documentation](https://help.mikrotik.com/docs/display/ROS/Container)
+- [GitHub Container Registry](https://ghcr.io/qwertykolea/openvpn-client)
 
 
 
