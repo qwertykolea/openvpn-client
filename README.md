@@ -293,7 +293,7 @@ docker build \
 
 ### Inside the build ( `openvpn-compile.sh` )
  - Installs build dependencies ( `build‑base, libtool, curl, openssl‑dev, lzo‑dev, lz4‑dev, etc.` ).
- - Downloads the official OpenVPN tarball from GitHub (`https://github.com/OpenVPN/openvpn/releases/download/v${CLEAN_VERSION}/openvpn-${CLEAN_VERSION}.tar.gz`).
+ - Downloads the official OpenVPN tarball from GitHub (`https://github.com/OpenVPN/openvpn/releases/download/v${VERSION}/openvpn-${VERSION}.tar.gz`).
  - Configures with the following flags:
 ```text
 --prefix=/usr
