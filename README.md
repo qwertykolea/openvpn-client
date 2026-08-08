@@ -192,7 +192,7 @@ add disabled=no distance=1 dst-address=0.0.0.0/0 gateway=192.168.40.10 \
 | `HEALTHCHECK_INTERVAL` | How often (in seconds) to ping the host. | `30` | `10` |
 | `HEALTHCHECK_MAX_FAILS` | Number of consecutive failed pings before the container reboots. | `3` | `2` |
 
-**Note:** All variable values are trimmed of leading/trailing quotes and whitespace via `clean_var()` function.
+>**Note:** All variable values are trimmed of leading/trailing quotes and whitespace via `clean_var()` function.
 
 ### DNS Configuration Details
 
@@ -200,6 +200,17 @@ add disabled=no distance=1 dst-address=0.0.0.0/0 gateway=192.168.40.10 \
 - It writes all DNS servers to `/etc/resolv.conf`.
 - It adds iptables DNAT rules for UDP and TCP port 53, redirecting all DNS queries to the **first** DNS server in the list.
 
+## Mount Points & Files
+
+| Mount point | Purpose |
+|-------------|---------|
+| `/vpn` | Directory containing `.ovpn` config files, optional `auth.txt`, and optional `post-up.sh`. |
+
+### Supported files inside `/vpn`
+
+- **`*.ovpn`** – OpenVPN configuration file(s). The container selects one according to the rules below.
+- **`auth.txt`** (or custom path via `OVPN_AUTH_FILE`) – Two‑line file with username and password. Used only if env vars are not provided.
+- **`post-up.sh`** – Custom script executed after the tunnel is up (see below).
 
 
 
