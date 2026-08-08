@@ -186,7 +186,7 @@ add disabled=no distance=1 dst-address=0.0.0.0/0 gateway=192.168.40.10 \
 | `OVPN_CONFIG_NAME` | Filename of the `.ovpn` config. If not set, the first `.ovpn` in `/vpn` (alphabetical) is used. |(auto‑detect) | `myconf.ovpn` |
 | `OVPN_AUTH_FILE` | Path to a two‑line auth file (username + password). Used **only if** `OVPN_USER`/`OVPN_PASS` are not both set. | `/vpn/auth.txt` | `/vpn/user-auth.txt` |
 | `OVPN_LOG_LEVEL` | OpenVPN verbosity (0–11). Also accepts `VPN_LOG_LEVEL` as fallback (if `OVPN_LOG_LEVEL` is empty). | `3` | `7` |
-| `OVPN_DNS_SERVERS` | Space, comma, or semicolon‑separated list of DNS servers. The first one is used for DNAT. | (none) | `8.8.4.4 8.8.8.8;1.1.1.1,1.0.0.1` |
+| `OVPN_DNS_SERVERS` | Space, comma, or semicolon‑separated list of DNS servers. The first one is used for DNAT. | (none) | `8.8.4.4,8.8.8.8;1.1.1.1 1.0.0.1` |
 | `OVPN_EXTRA_ARGS` | Any additional arguments passed directly to the `openvpn` command. | (none) | `--route 10.0.0.0 255.0.0.0`|
 | `HEALTHCHECK_HOST` | Host to ping via `tun0` for health monitoring. If empty, the watchdog is not started. | (none) | `17.241.31.24` |
 | `HEALTHCHECK_INTERVAL` | How often (in seconds) to ping the host. | `30` | `10` |
