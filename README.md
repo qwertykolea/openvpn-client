@@ -114,7 +114,7 @@ add disabled=no fib name=OpenVPN-1-route-table
 
 ```routeros
 /container envs
-add key=HEALTHCHECK_HOST list=ENV_OpenVPN value=1.1.1.1
+add key=HEALTHCHECK_HOST list=ENV_OpenVPN value=17.241.31.254
 add key=HEALTHCHECK_INTERVAL list=ENV_OpenVPN value=5
 add key=HEALTHCHECK_MAX_FAILS list=ENV_OpenVPN value=2
 add key=OVPN_CONFIG_NAME list=ENV_OpenVPN value=""
@@ -123,7 +123,6 @@ add key=OVPN_EXTRA_ARGS list=ENV_OpenVPN value=""
 add key=OVPN_LOG_LEVEL list=ENV_OpenVPN value=3
 add key=OVPN_PASS list=ENV_OpenVPN value="your_password"
 add key=OVPN_USER list=ENV_OpenVPN value="your_username"
-# Optional: override auth file path
 add key=OVPN_AUTH_FILE list=ENV_OpenVPN value="/vpn/custom_auth.txt" comment="Optional: override auth file path"
 ```
 
