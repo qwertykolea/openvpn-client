@@ -241,11 +241,55 @@ Example `/vpn/post-up.sh`:
 # Add custom routes
 ip route add 10.0.0.0/8 via $(ip route show dev tun0 | grep -oP 'via \K[0-9.]+')
 echo "Custom post-up script executed!"
+```
+## Healthcheck Watchdog – Internals
 
+The watchdog is a background subshell started by the entrypoint script.
 
+- It waits **15 seconds** before the first ping to give the tunnel time to come up.
+- Then it pings `HEALTHCHECK_HOST` using `ping -I tun0 -c 1 -W 3` every `HEALTHCHECK_INTERVAL` seconds.
+- If the ping succeeds, the failure counter is reset to 0.
+- If it fails, the counter increments. When it reaches `HEALTHCHECK_MAX_FAILS`, the container calls `reboot` (which forces the container to exit, allowing the orchestrator to restart it).
 
+This watchdog runs **in parallel** with OpenVPN; it does not block the main process.
 
+## Entrypoint Script Logic (Step‑by‑Step)
 
+The entrypoint (`/entrypoint.sh`) performs the following actions in order:
+
+1. **Clean and initialize variables** – Strips quotes and whitespace from all environment variables using `clean_var()`.
+2. **Select configuration file** – Determines the `.ovpn` file to use and copies it to `/tmp/config.ovpn`.
+3. **Handle authentication** – Based on env vars or auth file, it inserts or comments out the `auth-user-pass` directive in the temporary config.
+4. **Ensure TUN device exists** – Creates `/dev/net/tun` if it doesn't exist.
+5. **Start healthcheck watchdog** – If `HEALTHCHECK_HOST` is set, the watchdog subshell is started in the background.
+6. **Generate the up script** – Writes `/tmp/up.sh` with the following commands:
+   - `iptables -t nat -A POSTROUTING -o tun0 -j MASQUERADE`
+   - `iptables -P FORWARD ACCEPT`
+   - `iptables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu`
+   - If `OVPN_DNS_SERVERS` is set:
+     - Writes the DNS list to `/etc/resolv.conf`
+     - Adds DNAT rules: `iptables -t nat -A PREROUTING -p udp --dport 53 -j DNAT --to-destination ${PRIMARY_DNS}:53` (and same for TCP)
+   - Executes `/vpn/post-up.sh` if present.
+7. **Launch OpenVPN** with:
+   - `--config /tmp/config.ovpn`
+   - `--verb $VERB`
+   - `--suppress-timestamps`
+   - `--script-security 2`
+   - `--up /tmp/up.sh`
+   - `--up-restart`
+   - plus any arguments from `OVPN_EXTRA_ARGS`
+
+The container uses `exec` to run OpenVPN as PID 1, so signals are handled properly.
+
+## Building from Source – Compilation Details
+
+### Local Build
+
+```bash
+docker build \
+  --build-arg ALPINE_VERSION=3.20 \
+  --build-arg OPENVPN_VERSION=2.6.12 \
+  -t openvpn-client .
 
 
 
