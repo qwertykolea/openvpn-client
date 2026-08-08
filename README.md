@@ -212,8 +212,35 @@ add disabled=no distance=1 dst-address=0.0.0.0/0 gateway=192.168.40.10 \
 - **`auth.txt`** (or custom path via `OVPN_AUTH_FILE`) – Two‑line file with username and password. Used only if env vars are not provided.
 - **`post-up.sh`** – Custom script executed after the tunnel is up (see below).
 
+### Config file selection logic
 
+1. If `OVPN_CONFIG_NAME` is set, the container checks:
+   - the current working directory (inside container)
+   - `/vpn/`  
+   If found, it uses that file; otherwise, it exits with an error.
+2. If not set, it lists all `.ovpn` files in `/vpn`, sorts them alphabetically, and uses the first one. If no `.ovpn` files exist, it exits.
 
+### Authentication precedence
+
+1. **Environment variables** (`OVPN_USER` **and** `OVPN_PASS` both set) – highest priority.  
+   The container creates a temporary file `/tmp/auth_env.txt` with the two lines and inserts `auth-user-pass /tmp/auth_env.txt` into the config.
+2. **Auth file** – either the default `/vpn/auth.txt` or a custom path specified by `OVPN_AUTH_FILE`.  
+   The container inserts `auth-user-pass <path>` into the config.
+3. If **no** credentials are provided, any existing `auth-user-pass` line in the config is commented out (so the VPN may ask interactively, which will fail).
+
+The config is copied to `/tmp/config.ovpn` and modified with `sed` to either add or override the `auth-user-pass` directive.
+
+## Custom Post‑Up Script
+
+Place an executable script `post-up.sh` in `/vpn/`. It is executed **after** the tunnel is established, after the default iptables rules have been applied. Failures are ignored (`|| true`).
+
+Example `/vpn/post-up.sh`:
+
+```bash
+#!/bin/sh
+# Add custom routes
+ip route add 10.0.0.0/8 via $(ip route show dev tun0 | grep -oP 'via \K[0-9.]+')
+echo "Custom post-up script executed!"
 
 
 
