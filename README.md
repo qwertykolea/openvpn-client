@@ -105,6 +105,7 @@ add envlists=ENV_OpenVPN hostname=OpenVPN-1 interface=veth-container-ovpn-1 \
     remote-image=ghcr.io/qwertykolea/openvpn-client:latest \
     restart-policy=always root-dir=/openvpn-client:latest
 ```
+>**Note** `privileged=yes`
 ### 3. Create a routing table for VPN traffic
 ```routeros
 /routing table
@@ -361,17 +362,18 @@ This includes:
 ### Container exits immediately
 
 Check logs: `docker logs openvpn-client`
+Check logs on `routeros`: `log print where message~"container" `
 
 Common causes:
 - Missing `.ovpn` file in `/vpn/` or invalid `OVPN_CONFIG_NAME`.
 - Missing credentials (both env vars and auth file absent).
-- Missing `/dev/net/tun` – use `--device /dev/net/tun` or `privileged: true`.
+- Missing `/dev/net/tun` – use `--device /dev/net/tun` or `privileged: true`. # not relevant for `routeros`
 
 ### No network through VPN
 
-- Verify `tun0` exists: `docker exec openvpn-client ip addr show tun0`
-- Check routing: `docker exec openvpn-client ip route`
-- Inspect iptables NAT rules: `docker exec openvpn-client iptables -t nat -L -n`
+- Verify `tun0` exists: `docker exec openvpn-client ip addr show tun0` # not relevant for `routeros`
+- Check routing: `docker exec openvpn-client ip route` # not relevant for `routeros`
+- Inspect iptables NAT rules: `docker exec openvpn-client iptables -t nat -L -n` # not relevant for `routeros`
 
 ### Healthcheck keeps rebooting
 
