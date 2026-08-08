@@ -58,3 +58,45 @@ docker run -d \
   -e OVPN_PASS=your_password \
   -e OVPN_DNS_SERVERS="8.8.8.8 1.1.1.1" \
   ghcr.io/qwertykolea/openvpn-client:latest
+```
+
+### Run with docker-compose
+
+```bash
+services:
+  openvpn-client:
+    image: ghcr.io/qwertykolea/openvpn-client:latest
+    container_name: openvpn-client
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    volumes:
+      - ./config.ovpn:/vpn/config.ovpn
+      - ./auth.txt:/vpn/auth.txt
+    environment:
+      - OVPN_USER=username
+      - OVPN_PASS=password
+      - OVPN_DNS_SERVERS=8.8.8.8 1.1.1.1
+      - HEALTHCHECK_HOST=1.1.1.1
+    restart: unless-stopped
+```
+
+## Deploying on MikroTik RouterOS
+
+This is the primary use case. The container runs as a VPN gateway – other devices on your network can route traffic through it.
+
+### 1. Create a bridge and VETH interface
+
+```routeros
+/interface bridge
+add name=bridge-container-openvpn-1
+
+/interface veth
+add address=192.168.40.10/24 dhcp=no gateway=192.168.40.1 name=veth-container-ovpn-1
+```
+
+
+
+
