@@ -294,12 +294,9 @@ docker build \
 
 ### Inside the build (openvpn-compile.sh)
  - Installs build dependencies (build‑base, libtool, curl, openssl‑dev, lzo‑dev, lz4‑dev, etc.).
-
-Downloads the official OpenVPN tarball from GitHub (https://github.com/OpenVPN/openvpn/releases/download/v${CLEAN_VERSION}/openvpn-${CLEAN_VERSION}.tar.gz).
-
-Configures with the following flags:
-
-text
+ - Downloads the official OpenVPN tarball from GitHub (`https://github.com/OpenVPN/openvpn/releases/download/v${CLEAN_VERSION}/openvpn-${CLEAN_VERSION}.tar.gz`).
+ - Configures with the following flags:
+```text
 --prefix=/usr
 --sysconfdir=/etc
 --disable-dco
@@ -311,9 +308,9 @@ text
 --disable-management
 --disable-fragment
 --disable-port-share
-Injects a custom version string by patching config.h:
-
-Extracts architecture (uname -m), OS (/etc/os-release), and build date in UTC.
+```
+- Injects a custom version string by patching config.h:
+- Extracts architecture (uname -m), OS (/etc/os-release), and build date in UTC.
 
 Replaces #define TARGET_ALIAS with a string like:
 "linux-armv7l-alpine-linux-v3.20-musl built on 7 Aug 2026 14:56 UTC | https://github.com/qwertykolea/openvpn-client |"
