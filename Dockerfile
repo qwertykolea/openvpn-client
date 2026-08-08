@@ -23,7 +23,7 @@ ENV OVPN_LOG_LEVEL=3 \
     HEALTHCHECK_HOST="" \
     HEALTHCHECK_INTERVAL=30 \
     HEALTHCHECK_MAX_FAILS=3 \
-    OVPN_DNS_SERVER=""
+    OVPN_DNS_SERVERS=""
 
 # Working directory where .ovpn configs and auth files will be mounted
 WORKDIR /vpn
