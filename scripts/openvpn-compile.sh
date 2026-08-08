@@ -29,14 +29,9 @@ cd "openvpn-${CLEAN_VERSION}"
   --disable-plugins \
   --disable-systemd \
   --disable-selinux \
-  --disable-server \
   --disable-management \
   --disable-fragment \
-  --disable-multihome \
-  --disable-port-share \
-  --disable-socks \
-  --disable-http-proxy \
-  --disable-pam
+  --disable-port-share 
 
 # ------------------------------------------------------------
 # Build custom version string:
