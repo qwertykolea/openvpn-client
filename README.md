@@ -292,8 +292,8 @@ docker build \
   -t openvpn-client .
 ```
 
-### Inside the build (openvpn-compile.sh)
- - Installs build dependencies (build‑base, libtool, curl, openssl‑dev, lzo‑dev, lz4‑dev, etc.).
+### Inside the build ( `openvpn-compile.sh` )
+ - Installs build dependencies ( `build‑base, libtool, curl, openssl‑dev, lzo‑dev, lz4‑dev, etc.` ).
  - Downloads the official OpenVPN tarball from GitHub (`https://github.com/OpenVPN/openvpn/releases/download/v${CLEAN_VERSION}/openvpn-${CLEAN_VERSION}.tar.gz`).
  - Configures with the following flags:
 ```text
@@ -310,18 +310,43 @@ docker build \
 --disable-port-share
 ```
 - Injects a custom version string by patching config.h:
-  - Extracts architecture (uname -m), OS (/etc/os-release), and build date in UTC.
+  - Extracts architecture ( `uname -m` ), OS ( `/etc/os-release `), and build date in `UTC`.
+  - Replaces  `#define TARGET_ALIAS ` with a custom string:
+- Compiles with  `make -j` (parallel).
+- Installs only executables and libraries ( `make install-exec` ) – skips man pages and docs.
+- Cleans up build dependencies to keep the final image small.
 
-Replaces #define TARGET_ALIAS with a string like:
-"linux-armv7l-alpine-linux-v3.20-musl built on 7 Aug 2026 14:56 UTC | https://github.com/qwertykolea/openvpn-client |"
+```markdown
+## CI/CD Pipeline (GitHub Actions)
 
-Compiles with make -j (parallel).
+The workflow (`.github/workflows/docker-build.yml`) does the following:
 
-Installs only executables and libraries (make install-exec) – skips man pages and docs.
+- **Trigger**:
+  - Scheduled weekly (every Sunday at 00:00 UTC).
+  - Manual (`workflow_dispatch`) with inputs: `alpine_version`, `openvpn_version`, and `force_build`.
+- **Version detection**:
+  - Reads the current versions from `current_versions` file in the repo.
+  - Fetches the latest Alpine version from Docker Hub (filtering semantic tags `X.Y.Z`).
+  - Fetches the latest OpenVPN version from GitHub API (using `GITHUB_TOKEN` to avoid rate limits).
+  - If `force_build` is true, or if either version differs from `current_versions`, it triggers a build.
+- **Build & Push**:
+  - Uses `docker/setup-qemu-action` and `docker/setup-buildx-action` for multi‑arch.
+  - Logs in to GHCR.
+  - Builds for `linux/amd64`, `linux/arm64`, `linux/arm/v7`, `linux/arm/v6`.
+  - Pushes with tags:
+    - `latest`
+    - `alpine-<alpine-version>-openvpn-<openvpn-version>`
+    - `<openvpn-version>` (e.g., `2.6.12`)
+  - Provenance attestation is disabled.
+- **Update versions** (only for automatic/scheduled runs):
+  - If the build succeeded, it overwrites `current_versions` with the new versions.
+  - Commits and pushes the change to the repository (with `[skip ci]`).
 
-Cleans up build dependencies to keep the final image small.
+---
 
+## Version Information
 
+The compiled OpenVPN binary shows a custom version string (e.g., `openvpn --version`):
 
 
 
