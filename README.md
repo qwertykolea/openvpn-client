@@ -175,9 +175,22 @@ add disabled=no distance=1 dst-address=0.0.0.0/0 gateway=192.168.40.10 \
     routing-table=OpenVPN-1-route-table scope=30 target-scope=10
 ```
 
->Note: The gateway (`192.168.40.10`) is the VETH IP address assigned to the container.
+>**Note:** The gateway (`192.168.40.10`) is the VETH IP address assigned to the container.
 
+## Environment Variables (Complete Reference)
 
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `OVPN_USER` | OpenVPN username. If set together with `OVPN_PASS`, they override any auth file. | (none) |
+| `OVPN_PASS` | OpenVPN password. Must be set together with `OVPN_USER`. | (none) |
+| `OVPN_CONFIG_NAME` | Filename of the `.ovpn` config. If not set, the first `.ovpn` in `/vpn` (alphabetical) is used. | (auto‑detect) |
+| `OVPN_AUTH_FILE` | Path to a two‑line auth file (username + password). Used **only if** `OVPN_USER`/`OVPN_PASS` are not both set. | `/vpn/auth.txt` |
+| `OVPN_LOG_LEVEL` | OpenVPN verbosity (0–11). Also accepts `VPN_LOG_LEVEL` as fallback (if `OVPN_LOG_LEVEL` is empty). | `3` |
+| `OVPN_DNS_SERVERS` | Space, comma, or semicolon‑separated list of DNS servers. The first one is used for DNAT. | (none) |
+| `OVPN_EXTRA_ARGS` | Any additional arguments passed directly to the `openvpn` command (e.g., `--route 10.0.0.0 255.0.0.0`). | (none) |
+| `HEALTHCHECK_HOST` | Host to ping via `tun0` for health monitoring. If empty, the watchdog is not started. | (none) |
+| `HEALTHCHECK_INTERVAL` | How often (in seconds) to ping the host. | `30` |
+| `HEALTHCHECK_MAX_FAILS` | Number of consecutive failed pings before the container reboots. | `3` |
 
 
 
