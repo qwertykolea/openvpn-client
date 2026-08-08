@@ -105,7 +105,7 @@ add envlists=ENV_OpenVPN hostname=OpenVPN-1 interface=veth-container-ovpn-1 \
     remote-image=ghcr.io/qwertykolea/openvpn-client:latest \
     restart-policy=always root-dir=/openvpn-client:latest
 ```
->**Note** `privileged=yes`
+>**Note:** `privileged=yes`
 ### 3. Create a routing table for VPN traffic
 ```routeros
 /routing table
@@ -370,8 +370,10 @@ Common causes:
 - Missing `/dev/net/tun` – use `--device /dev/net/tun` or `privileged: true`. # not relevant for `routeros`
 
 ### No network through VPN
-
-- Verify `tun0` exists: `docker exec openvpn-client ip addr show tun0` # not relevant for `routeros`
+| Docker | routeros |
+|-------------|---------|
+|- Verify `tun0` exists: `docker exec openvpn-client ip addr show tun0` | not relevant for `routeros`|
+- `routeros`: `container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] `
 - Check routing: `docker exec openvpn-client ip route` # not relevant for `routeros`
 - Inspect iptables NAT rules: `docker exec openvpn-client iptables -t nat -L -n` # not relevant for `routeros`
 
