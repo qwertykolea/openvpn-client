@@ -131,7 +131,7 @@ jobs:
           provenance: false  # disable provenance attestation to keep build simple
 
       - name: Update current_versions file in repository
-        if: steps.check_updates.outputs.should_build == 'true' # && github.event_name != 'workflow_dispatch'
+        if: steps.check_updates.outputs.should_build == 'true' && github.event_name != 'workflow_dispatch'
         run: |
           # Write new versions to file so next run can compare correctly
           cat <<EOF > current_versions
