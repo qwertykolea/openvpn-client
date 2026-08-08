@@ -310,7 +310,7 @@ docker build \
 --disable-port-share
 ```
 - Injects a custom version string by patching config.h:
-- Extracts architecture (uname -m), OS (/etc/os-release), and build date in UTC.
+  - Extracts architecture (uname -m), OS (/etc/os-release), and build date in UTC.
 
 Replaces #define TARGET_ALIAS with a string like:
 "linux-armv7l-alpine-linux-v3.20-musl built on 7 Aug 2026 14:56 UTC | https://github.com/qwertykolea/openvpn-client |"
