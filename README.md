@@ -96,6 +96,114 @@ add name=bridge-container-openvpn-1
 /interface veth
 add address=192.168.40.10/24 dhcp=no gateway=192.168.40.1 name=veth-container-ovpn-1
 ```
+### 2. Create the container
+
+```routeros
+/container
+add envlists=ENV_OpenVPN hostname=OpenVPN-1 interface=veth-container-ovpn-1 \
+    mountlists=MOUNT_OpenVPN name=OpenVPN-1 privileged=yes \
+    remote-image=ghcr.io/qwertykolea/openvpn-client:latest \
+    restart-policy=always root-dir=/openvpn-client:latest
+```
+### 3. Create a routing table for VPN traffic
+```routeros
+/routing table
+add disabled=no fib name=OpenVPN-1-route-table
+```
+### 4. Set up environment variables
+
+```routeros
+/container envs
+add key=HEALTHCHECK_HOST list=ENV_OpenVPN value=1.1.1.1
+add key=HEALTHCHECK_INTERVAL list=ENV_OpenVPN value=5
+add key=HEALTHCHECK_MAX_FAILS list=ENV_OpenVPN value=2
+add key=OVPN_CONFIG_NAME list=ENV_OpenVPN value=""
+add key=OVPN_DNS_SERVERS list=ENV_OpenVPN value="8.8.4.4 8.8.8.8;1.1.1.1,1.0.0.1"
+add key=OVPN_EXTRA_ARGS list=ENV_OpenVPN value=""
+add key=OVPN_LOG_LEVEL list=ENV_OpenVPN value=3
+add key=OVPN_PASS list=ENV_OpenVPN value="your_password"
+add key=OVPN_USER list=ENV_OpenVPN value="your_username"
+# Optional: override auth file path
+add key=OVPN_AUTH_FILE list=ENV_OpenVPN value="/vpn/custom_auth.txt" comment="Optional: override auth file path"
+```
+
+### 5. Mount the OpenVPN config directory
+
+Place your `.ovpn` config file(s) on a USB drive or persistent storage.
+
+```routeros
+/container mountAs
+add dst=/vpn list=MOUNT_OpenVPN src=/usb1/OpenVPN_config
+```
+### 6. Add the VETH to the bridge
+```routeros
+/interface bridge port
+add bridge=bridge-container-openvpn-1 interface=veth-container-ovpn-1
+```
+
+### 7. Add the bridge to your LAN interface list
+
+```routeros
+/interface list member
+add interface=bridge-container-openvpn-1 list=LAN
+```
+### 8. Set up the bridge IP address
+
+```routeros
+/ip address
+add address=192.168.40.1/24 interface=bridge-container-openvpn-1 network=192.168.40.0
+```
+### 9. Create an address list for traffic to route through VPN
+
+```routeros
+/ip firewall address-list
+add address=17.241.31.0/24 list=To_OpenVPN-1
+add address=8.8.8.0/24 list=To_OpenVPN-1
+```
+### 10. Mark routing for traffic destined to the VPN
+
+```routeros
+/ip firewall mangle
+add action=mark-routing chain=prerouting dst-address-list=To_OpenVPN-1 \
+    in-interface-list=LAN new-routing-mark=OpenVPN-1-route-table passthrough=no
+```
+### 11. Add the VPN route
+
+```routeros
+/ip route
+add disabled=no distance=1 dst-address=0.0.0.0/0 gateway=192.168.40.10 \
+    routing-table=OpenVPN-1-route-table scope=30 target-scope=10
+```
+
+>Note: The gateway (192.168.40.10) is the VETH IP address assigned to the container.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
