@@ -11,7 +11,7 @@ apk add --no-cache lzo libcap-ng openssl
 
 apk add --no-cache --virtual .openvpn-builddeps \
   build-base libtool linux-headers pkgconfig \
-  libcap-ng-dev linux-pam-dev openssl-dev lzo-dev curl
+  libcap-ng-dev lz4-dev linux-pam-dev openssl-dev lzo-dev curl
 
 # Скачиваем и распаковываем официальный tarball
 # CDN swupdate.openvpn.org хранит уже подготовленные релизы со скриптом configure
