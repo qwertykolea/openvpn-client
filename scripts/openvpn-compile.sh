@@ -39,7 +39,7 @@ OS_V=$(grep -E '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
 DATE=$(date -u '+%d %b %Y %H:%M UTC')
 REPO="https://github.com/qwertykolea/openvpn-client"
 
-sed -i "s@#define TARGET_ALIAS .*@#define TARGET_ALIAS \"${ARCH}-${OS}-linux-v${OS_V}-musl  built on ${DATE} | ${REPO} | \"@" config.h
+sed -i "s@#define TARGET_ALIAS .*@#define TARGET_ALIAS \"${ARCH}-${OS}-linux-v${OS_V}-musl built on ${DATE} | ${REPO} |\"@" config.h
 # -----------------------------
 
 # Compile using all available CPU cores
