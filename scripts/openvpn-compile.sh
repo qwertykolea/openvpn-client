@@ -8,7 +8,7 @@ CLEAN_VERSION="${OPENVPN_VERSION#v}"
 # Устанавливаем зависимости для сборки.
 # ВНИМАНИЕ: git, autoconf и automake БОЛЬШЕ НЕ НУЖНЫ!
 apk add --no-cache --virtual .openvpn-builddeps \
-  build-base libtool linux-headers pkgconfig \
+  build-base libtool linux-headers pkgconfig libcap-ng \
   openssl-dev lzo-dev curl
 
 # Скачиваем и распаковываем официальный tarball
