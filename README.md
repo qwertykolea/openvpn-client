@@ -175,7 +175,7 @@ add disabled=no distance=1 dst-address=0.0.0.0/0 gateway=192.168.40.10 \
     routing-table=OpenVPN-1-route-table scope=30 target-scope=10
 ```
 
->Note: The gateway (192.168.40.10) is the VETH IP address assigned to the container.
+>Note: The gateway (`192.168.40.10`) is the VETH IP address assigned to the container.
 
 
 
