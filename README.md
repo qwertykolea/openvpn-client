@@ -410,10 +410,6 @@ Common causes:
 
 ### DNS not working
 
-- Verify `OVPN_DNS_SERVERS` is set and properly parsed.
-- Check DNAT rules: `docker exec openvpn-client iptables -t nat -L PREROUTING -n` | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="iptables -t nat -L PREROUTING -n" `
-- Check `/etc/resolv.conf` inside the container | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="cat /etc/resolv.conf" `
-e
 <table>
 <thead>
 <tr>
@@ -432,9 +428,9 @@ e
 <td><code>container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="iptables -t nat -L PREROUTING -n"</code></td>
 </tr>
 <tr>
-<td>Increase <code>HEALTHCHECK_INTERVAL</code> or <code>HEALTHCHECK_MAX_FAILS</code> if the host is slow to respond.</td>
-<td></td>
-<td></td>
+<td>Check <code>/etc/resolv.conf</code> inside the container</td>
+<td><code>docker exec openvpn-client cat /etc/resolv.conf</code></td>
+<td><code>container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="cat /etc/resolv.conf"</code></td>
 </tr>
 </tbody>
 </table>
