@@ -363,8 +363,8 @@ This includes:
 
 ### Container exits immediately
 
-Check logs: `docker logs openvpn-client`
-Check logs on `routeros`: `log print where message~"container" `
+- Check logs: `docker logs openvpn-client`
+- Check logs on `routeros`: `log print where message~"container" `
 
 Common causes:
 - Missing `.ovpn` file in `/vpn/` or invalid `OVPN_CONFIG_NAME`.
@@ -382,14 +382,14 @@ Common causes:
 
 ### Healthcheck keeps rebooting
 
-- Ensure `HEALTHCHECK_HOST` is reachable via `tun0`. Test manually: `docker exec openvpn-client ping -I tun0 1.1.1.1`
+- Ensure `HEALTHCHECK_HOST` is reachable via `tun0`. Test manually: `docker exec openvpn-client ping -I tun0 1.1.1.1` | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="ping -I tun0 1.1.1.1" `
 - Increase `HEALTHCHECK_INTERVAL` or `HEALTHCHECK_MAX_FAILS` if the host is slow to respond.
 
 ### DNS not working
 
 - Verify `OVPN_DNS_SERVERS` is set and properly parsed.
-- Check DNAT rules: `docker exec openvpn-client iptables -t nat -L PREROUTING -n`
-- Check `/etc/resolv.conf` inside the container.
+- Check DNAT rules: `docker exec openvpn-client iptables -t nat -L PREROUTING -n` | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="iptables -t nat -L PREROUTING -n" `
+- Check `/etc/resolv.conf` inside the container | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="cat /etc/resolv.conf" `
 
 ### Custom script not running
 
