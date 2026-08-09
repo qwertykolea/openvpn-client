@@ -433,9 +433,12 @@ e
 </tr>
 <tr>
 <td>Increase <code>HEALTHCHECK_INTERVAL</code> or <code>HEALTHCHECK_MAX_FAILS</code> if the host is slow to respond.</td>
+<td></td>
+<td></td>
 </tr>
 </tbody>
 </table>
+
 ### Custom script not running
 
 - Ensure `/vpn/post-up.sh` exists and is executable (`chmod +x`).
