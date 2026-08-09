@@ -17,7 +17,7 @@ A lightweight, multi‑architecture OpenVPN client container built on Alpine Lin
 - [Deploying on MikroTik RouterOS](#deploying-on-mikrotik-routeros)
 - [Environment Variables (Complete Reference)](#environment-variables-complete-reference)
 - [Mount Points & Files](#mount-points--files)
-- [Custom Post‑Up Script](#custom-post-up-script)
+- [Custom Post‑Up Script](#custom-postup-script)
 - [Healthcheck Watchdog – Internals](#healthcheck-watchdog--internals)
 - [Entrypoint Script Logic (Step‑by‑Step)](#entrypoint-script-logic-step-by-step)
 - [Building from Source – Compilation Details](#building-from-source--compilation-details)
