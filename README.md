@@ -1,11 +1,11 @@
 # OpenVPN Client Container
 
-[![Build and Push OpenVPN Container](https://github.com/qwertykolea/openvpn-client/actions/workflows/docker-build.yml/badge.svg)](https://github.com/qwertykolea/openvpn-client/actions/workflows/docker-build.yml)
+
 [![Docker Image Version](https://ghcr-badge.egpl.dev/qwertykolea/openvpn-client/latest_tag?label=latest+version)](https://github.com/qwertykolea/openvpn-client/pkgs/container/openvpn-client)
 [![Docker Image Tags](https://ghcr-badge.egpl.dev/qwertykolea/openvpn-client/tags?&label=image+tags)](https://github.com/qwertykolea/openvpn-client/pkgs/container/openvpn-client)
 [![Docker Image Size](https://ghcr-badge.egpl.dev/qwertykolea/openvpn-client/size?tag=latest&label=image+size)](https://github.com/qwertykolea/openvpn-client/pkgs/container/openvpn-client)
 
-
+[![Build and Push OpenVPN Container](https://github.com/qwertykolea/openvpn-client/actions/workflows/docker-build.yml/badge.svg)](https://github.com/qwertykolea/openvpn-client/actions/workflows/docker-build.yml)
 A lightweight, multi‑architecture OpenVPN client container built on Alpine Linux, designed specifically for **MikroTik RouterOS** container support and other resource‑constrained environments.
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/qwertykolea/openvpn-client)
