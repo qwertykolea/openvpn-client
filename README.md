@@ -277,41 +277,19 @@ The entrypoint (`/entrypoint.sh`) performs the following actions in order:
      - Adds DNAT rules: `iptables -t nat -A PREROUTING -p udp --dport 53 -j DNAT --to-destination ${PRIMARY_DNS}:53` (and same for TCP)
 7. **Generate the route-up script ( `/tmp/route-up.sh` )** – This script is executed by OpenVPN after all routes (including pushed routes) have been added. It:
    - Waits briefly for tun0 to obtain an IP address (if not already present).
+   - Executes `/vpn/post-up.sh` if present, after converting CRLF line endings.
 9. **Launch OpenVPN** with:
    - `--config /tmp/config.ovpn`
    - `--verb $VERB`
    - `--suppress-timestamps`
    - `--script-security 2`
    - `--up /tmp/up.sh`
+   - `--route-up /tmp/route-up.sh`
    - `--up-restart`
    - plus any arguments from `OVPN_EXTRA_ARGS`
 
 The container uses `exec` to run OpenVPN as PID 1, so signals are handled properly.
-Generate the route-up script (/tmp/route-up.sh) – This script is executed by OpenVPN after all routes (including pushed routes) have been added. It:
 
-Waits briefly for tun0 to obtain an IP address (if not already present).
-
-Executes /vpn/post-up.sh if present, after converting CRLF line endings.
-
-Launch OpenVPN with:
-
---config /tmp/config.ovpn
-
---verb $VERB
-
---suppress-timestamps
-
---script-security 2
-
---up /tmp/up.sh
-
---route-up /tmp/route-up.sh
-
---up-restart
-
-plus any arguments from OVPN_EXTRA_ARGS
-
-The container uses exec to run OpenVPN as PID 1, so signals are handled properly.
 ## Building from Source – Compilation Details
 
 ### Local Build
