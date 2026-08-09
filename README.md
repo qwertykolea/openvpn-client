@@ -176,7 +176,7 @@ add action=mark-routing chain=prerouting dst-address-list=To_OpenVPN-1 \
 add disabled=no distance=1 dst-address=0.0.0.0/0 gateway=192.168.40.10 \
     routing-table=OpenVPN-1-route-table scope=30 target-scope=10
 ```
-
+> [!IMPORTANT]
 >**Note:** The gateway (`192.168.40.10`) is the VETH IP address assigned to the container.
 
 ## Environment Variables (Complete Reference)
@@ -193,7 +193,7 @@ add disabled=no distance=1 dst-address=0.0.0.0/0 gateway=192.168.40.10 \
 | `HEALTHCHECK_HOST` | Host to ping via `tun0` for health monitoring. If empty, the watchdog is not started. | (none) | `17.241.31.24` |
 | `HEALTHCHECK_INTERVAL` | How often (in seconds) to ping the host. | `30` | `10` |
 | `HEALTHCHECK_MAX_FAILS` | Number of consecutive failed pings before the container reboots. | `3` | `2` |
-
+> [!NOTE]
 >**Note:** All variable values are trimmed of leading/trailing quotes and whitespace via `clean_var()` function.
 
 ### DNS Configuration Details
