@@ -19,7 +19,7 @@ A lightweight, multi‑architecture OpenVPN client container built on Alpine Lin
 - [Mount Points & Files](#mount-points--files)
 - [Custom Post‑Up Script](#custom-postup-script)
 - [Healthcheck Watchdog – Internals](#healthcheck-watchdog--internals)
-- [Entrypoint Script Logic (Step‑by‑Step)](#entrypoint-script-logic-step-by-step)
+- [Entrypoint Script Logic (Step‑by‑Step)](#entrypoint-script-logic-stepbystep)
 - [Building from Source – Compilation Details](#building-from-source--compilation-details)
 - [CI/CD Pipeline (GitHub Actions)](#cicd-pipeline-github-actions)
 - [Version Information](#version-information)
