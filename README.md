@@ -133,14 +133,14 @@ add key=OVPN_AUTH_FILE list=ENV_OpenVPN value="/vpn/custom_auth.txt" comment="Op
 
 ### 5. Mount the OpenVPN config directory
 
-Place your `.ovpn` config file(s) on a USB drive or persistent storage.
+Place your `.ovpn` config file(s) on a drive (USB, internal storage, etc).
 
 ```routeros
 /container mountAs
 add dst=/vpn list=MOUNT_OpenVPN src=/usb1/OpenVPN_config
 ```
 > [!NOTE]
-> Change `usb1`to your disk
+> Change `usb1` to your disk
 ### 6. Add the VETH to the bridge
 ```routeros
 /interface bridge port
@@ -345,6 +345,7 @@ The workflow (`.github/workflows/docker-build.yml`) does the following:
 - **Build & Push**:
   - Uses `docker/setup-qemu-action` and `docker/setup-buildx-action` for multi‑arch.
   - Logs in to GHCR.
+  - Logs in to Docker Hub.
   - Builds for `linux/amd64`, `linux/arm64`, `linux/arm/v7`, `linux/arm/v6`.
   - Pushes with tags:
     - `latest`
