@@ -353,7 +353,6 @@ The workflow (`.github/workflows/docker-build.yml`) does the following:
 ## Version Information
 
 The compiled OpenVPN binary shows a custom version string (e.g., `openvpn --version`):
-
 `OpenVPN 2.6.12 linux-armv7l-alpine-linux-v3.20-musl built on 7 Aug 2026 14:56 UTC | https://github.com/qwertykolea/openvpn-client | [SSL (OpenSSL)] [LZO] [LZ4] [EPOLL] [MH/PKTINFO] [AEAD]`
 
 This includes:
@@ -367,9 +366,10 @@ This includes:
 ## Troubleshooting
 
 ### Container exits immediately
+| Description | Linux | ` routeros ` |
+|-------------|---------|
+| Check logs | `docker logs openvpn-client` | `routeros`: `log print where message~"container" ` |
 
-- Check logs: `docker logs openvpn-client`
-- Check logs on `routeros`: `log print where message~"container" `
 
 Common causes:
 - Missing `.ovpn` file in `/vpn/` or invalid `OVPN_CONFIG_NAME`.
