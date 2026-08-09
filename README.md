@@ -390,10 +390,14 @@ Common causes:
 | Description | Docker | ` routeros ` |
 |-------------|-------------|---------|
 |Ensure `HEALTHCHECK_HOST` is reachable via `tun0`| `docker exec openvpn-client ping -I tun0 1.1.1.1` | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="ping -I tun0 1.1.1.1" ` |
-|Increase `HEALTHCHECK_INTERVAL` or `HEALTHCHECK_MAX_FAILS` if the host is slow to respond.|
+|Increase `HEALTHCHECK_INTERVAL` or `HEALTHCHECK_MAX_FAILS` if the host is slow to respond.|||
 
 ### DNS not working
-
+| Description | Docker | ` routeros ` |
+|-------------|-------------|---------|
+||||
+||||
+||||
 - Verify `OVPN_DNS_SERVERS` is set and properly parsed.
 - Check DNAT rules: `docker exec openvpn-client iptables -t nat -L PREROUTING -n` | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="iptables -t nat -L PREROUTING -n" `
 - Check `/etc/resolv.conf` inside the container | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="cat /etc/resolv.conf" `
