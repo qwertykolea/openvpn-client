@@ -371,38 +371,12 @@ Common causes:
 
 ### No network through VPN
 | Docker | ` routeros ` |
-|-------------|---------|
+|:------------|---------|
 |Verify `tun0` exists: `docker exec openvpn-client ip addr show tun0` | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="ip addr show tun0" ` |
-|^|sds|
 |Check routing: `docker exec openvpn-client ip route` | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="ip route" ` |
 |Inspect iptables NAT rules: `docker exec openvpn-client iptables -t nat -L -n` | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="iptables -t nat -L -n" ` |
 
-<table>
-  <thead>
-    <tr>
-      <th>Docker</th>
-      <th> ` routeros `</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <!-- This cell spans 2 rows vertically -->
-      <td rowspan="2">Fruit</td>
-      <td>Apple</td>
-      <td>$1.00</td>
-    </tr>
-    <tr>
-      <!-- The first cell is omitted here because the row above spans into it -->
-      <td>Banana</td>
-      <td>$0.50</td>
-    </tr>
-    <tr>
-      <td>Vegetable</td>
-      <td>Carrot</td>
-      <td>$0.75</td>
-    </tr>
-  </tbody>
-</table>
+
 ### Healthcheck keeps rebooting
 
 - Ensure `HEALTHCHECK_HOST` is reachable via `tun0`. Test manually: `docker exec openvpn-client ping -I tun0 1.1.1.1`
