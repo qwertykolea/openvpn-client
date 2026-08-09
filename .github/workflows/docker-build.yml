@@ -139,11 +139,9 @@ jobs:
             ALPINE_VERSION=${{ steps.check_updates.outputs.target_alpine }}
             OPENVPN_VERSION=${{ steps.check_updates.outputs.target_openvpn }}
           tags: |
-           # Tags for GHCR
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:alpine-${{ steps.check_updates.outputs.target_alpine }}-openvpn-${{ steps.check_updates.outputs.target_openvpn }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.check_updates.outputs.target_openvpn }}
-           # Tags for Docker Hub (добавлены)
             docker.io/${{ env.DOCKER_IMAGE_NAME }}:latest
             docker.io/${{ env.DOCKER_IMAGE_NAME }}:alpine-${{ steps.check_updates.outputs.target_alpine }}-openvpn-${{ steps.check_updates.outputs.target_openvpn }}
             docker.io/${{ env.DOCKER_IMAGE_NAME }}:${{ steps.check_updates.outputs.target_openvpn }}
