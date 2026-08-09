@@ -427,8 +427,9 @@ e
 <td colspan="3">Verify <code>OVPN_DNS_SERVERS</code> is set and properly parsed.</td>
 </tr>
 <tr>
-<td><code>docker exec openvpn-client ping -I tun0 1.1.1.1</code></td>
-<td><code>container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="ping -I tun0 1.1.1.1"</code></td>
+<td>Check DNAT rules</td>
+<td><code>docker exec openvpn-client iptables -t nat -L PREROUTING -n</code></td>
+<td><code>container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="iptables -t nat -L PREROUTING -n"</code></td>
 </tr>
 <tr>
 <td>Increase <code>HEALTHCHECK_INTERVAL</code> or <code>HEALTHCHECK_MAX_FAILS</code> if the host is slow to respond.</td>
