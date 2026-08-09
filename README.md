@@ -2,7 +2,6 @@
 
 [![Build and Push OpenVPN Container](https://github.com/qwertykolea/openvpn-client/actions/workflows/docker-build.yml/badge.svg)](https://github.com/qwertykolea/openvpn-client/actions/workflows/docker-build.yml)
 [![Docker Image Version](https://img.shields.io/docker/v/qwertykolea/openvpn-client?sort=date&label=latest)](https://github.com/qwertykolea/openvpn-client/pkgs/container/openvpn-client)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A lightweight, multi‑architecture OpenVPN client container built on Alpine Linux, designed specifically for **MikroTik RouterOS** container support and other resource‑constrained environments.
 
@@ -25,8 +24,6 @@ A lightweight, multi‑architecture OpenVPN client container built on Alpine Lin
 - [CI/CD Pipeline (GitHub Actions)](#cicd-pipeline-github-actions)
 - [Version Information](#version-information)
 - [Troubleshooting](#troubleshooting)
-- [License](#license)
-- [Contributing](#contributing)
 - [Links](#links)
 
 ---
@@ -439,18 +436,6 @@ Common causes:
 
 - Ensure `/vpn/post-up.sh` exists and is executable (`chmod +x`).
 - Add `set -x` at the top of the script to debug; errors are ignored (`|| true`), but output goes to logs.
-
----
-
-## License
-
-MIT License – see the [LICENSE](https://github.com/qwertykolea/openvpn-client/blob/main/LICENSE) file.
-
----
-
-## Contributing
-
-Issues and PRs are welcome. Please keep compatibility with MikroTik and all target architectures. Update the README and relevant scripts when adding features.
 
 ---
 
