@@ -6,6 +6,7 @@
 
 A lightweight, multi‑architecture OpenVPN client container built on Alpine Linux, designed specifically for **MikroTik RouterOS** container support and other resource‑constrained environments.
 
+> [!NOTE]
 > **Why this exists:** MikroTik's built‑in OpenVPN client has limitations (e.g., limited cipher support, no `auth-user-pass` file support, no custom DNS). This container runs a full OpenVPN client inside a container on your MikroTik, giving you the full OpenVPN feature set.
 
 ---
@@ -367,8 +368,8 @@ Check logs on `routeros`: `log print where message~"container" `
 Common causes:
 - Missing `.ovpn` file in `/vpn/` or invalid `OVPN_CONFIG_NAME`.
 - Missing credentials (both env vars and auth file absent).
-- Missing `/dev/net/tun` – use `--device /dev/net/tun`
-- Missing `privileged: true`| on `routeros` : `privileged=yes`
+- Missing `/dev/net/tun` – use `--device /dev/net/tun` 
+- Missing `privileged: true` | on `routeros` : `privileged=yes`
 
 ### No network through VPN
 | Docker | ` routeros ` |
