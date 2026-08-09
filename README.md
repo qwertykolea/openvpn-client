@@ -463,18 +463,6 @@ Issues and PRs are welcome. Please keep compatibility with MikroTik and all targ
 - [GitHub Container Registry](https://ghcr.io/qwertykolea/openvpn-client)
 
 ### Useful links
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- [https://github.com/SergeyRim/mikrotik-openvpn-client](https://github.com/SergeyRim/mikrotik-openvpn-client)
+- [https://github.com/dperson/openvpn-client](https://github.com/dperson/openvpn-client)
+- [https://github.com/utkuozdemir/dperson-openvpn-client](https://github.com/utkuozdemir/dperson-openvpn-client)
