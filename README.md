@@ -367,7 +367,7 @@ This includes:
 
 ### Container exits immediately
 | Description | Linux | ` routeros ` |
-|-------------|---------|
+|-------------|---------|---------|
 | Check logs | `docker logs openvpn-client` | `routeros`: `log print where message~"container" ` |
 
 
