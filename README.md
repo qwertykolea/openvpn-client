@@ -223,13 +223,13 @@ add disabled=no distance=1 dst-address=0.0.0.0/0 gateway=192.168.40.10 \
 - **`*.ovpn`** – OpenVPN configuration file(s). The container selects one according to the rules below.
 - **`auth.txt`** (or custom path via `OVPN_AUTH_FILE`) – Two‑line file with username and password. Used only if env vars are not provided.
 - **`post-up.sh`** – Custom script executed after the tunnel is up (see below).
-
+> [!NOTE]
+> Additional files such as ` .crt `, ` .key `, ` .pem `, ` .p12 `, ` .pfx `, etc. that are included in the .ovpn configuration are also supported.
 ### Config file selection logic
 
 1. If `OVPN_CONFIG_NAME` is set, the container checks:
-   - the current working directory (inside container)
-   - `/vpn/`  
-   If found, it uses that file; otherwise, it exits with an error.
+   - The current working directory (inside container) `/vpn/` 
+   - If found, it uses that file; otherwise, it exits with an error.
 2. If not set, it lists all `.ovpn` files in `/vpn`, sorts them alphabetically, and uses the first one. If no `.ovpn` files exist, it exits.
 
 ### Authentication precedence
