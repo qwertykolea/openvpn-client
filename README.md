@@ -238,7 +238,8 @@ The config is copied to `/tmp/config.ovpn` and modified with `sed` to either add
 
 Place an executable script `post-up.sh` in `/vpn/`. It is executed **after** all routes have been added (using OpenVPN's `--route-up` hook). This means that at the time your script runs, the routing table is fully populated – you can safely add static routes that depend on the VPN's pushed routes.
 
-The container also converts Windows line endings (CRLF) to Unix (LF) automatically before execution, using dos2unix if available, otherwise sed. Failures in the script are ignored (|| true)
+The container also converts Windows line endings (CRLF) to Unix (LF) automatically before execution, using dos2unix if available, otherwise sed. Failures in the script are ignored (|| true).
+
 Example `/vpn/post-up.sh`:
 
 ```bash
