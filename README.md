@@ -373,6 +373,7 @@ Common causes:
 | Docker | ` routeros ` |
 |-------------|---------|
 |Verify `tun0` exists: `docker exec openvpn-client ip addr show tun0` | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="ip addr show tun0" ` |
+|^|sds|
 |Check routing: `docker exec openvpn-client ip route` | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="ip route" ` |
 |Inspect iptables NAT rules: `docker exec openvpn-client iptables -t nat -L -n` | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="iptables -t nat -L -n" ` |
 
