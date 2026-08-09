@@ -372,7 +372,7 @@ This includes:
 Common causes:
 - Missing `.ovpn` file in `/vpn/` or invalid `OVPN_CONFIG_NAME`.
 - Missing credentials (both env vars and auth file absent).
-- Missing `/dev/net/tun` – use `--device /dev/net/tun` . _# not relevant for `routeros`_
+- Missing `/dev/net/tun` – use `--device /dev/net/tun` . _<sub># not relevant for `routeros`</sub>_
 - Missing `privileged: true` | on `routeros` : `privileged=yes`
 
 ### No network through VPN
