@@ -392,6 +392,26 @@ Common causes:
 |Ensure `HEALTHCHECK_HOST` is reachable via `tun0`| `docker exec openvpn-client ping -I tun0 1.1.1.1` | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="ping -I tun0 1.1.1.1" ` |
 ||Increase `HEALTHCHECK_INTERVAL` or `HEALTHCHECK_MAX_FAILS` if the host is slow to respond.||
 
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Docker</th>
+<th><code>routeros</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ensure <code>HEALTHCHECK_HOST</code> is reachable via <code>tun0</code></td>
+<td><code>docker exec openvpn-client ping -I tun0 1.1.1.1</code></td>
+<td><code>container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="ping -I tun0 1.1.1.1"</code></td>
+</tr>
+<tr>
+<td colspan="3">Increase <code>HEALTHCHECK_INTERVAL</code> or <code>HEALTHCHECK_MAX_FAILS</code> if the host is slow to respond.</td>
+</tr>
+</tbody>
+</table>
+
 ### DNS not working
 | Description | Docker | ` routeros ` |
 |-------------|-------------|---------|
