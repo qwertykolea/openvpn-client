@@ -113,7 +113,7 @@ add envlists=ENV_OpenVPN hostname=OpenVPN-1 interface=veth-container-ovpn-1 \
     restart-policy=always root-dir=/openvpn-client:latest
 ```
 > [!IMPORTANT]
-> Container must be privileged: `privileged=yes`
+> Container must be privileged: ` privileged=yes ` 
 ### 3. Create a routing table for VPN traffic
 ```routeros
 /routing table
