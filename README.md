@@ -1,4 +1,4 @@
-# OpenVPN Client Container
+# OpenVPN Client Container [![Docker Image Version](https://img.shields.io/badge/MikroTik/RouterOS-Ready-blue.svg?logo=data:image/svg%2bxml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIGlkPSJMYXllcl8yIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MS44MyA0NC42MiI+PGcgaWQ9IkxheWVyXzEtMiI+PHBhdGggZD0iTTQxLjgzLDEzLjgzYzAtMS43Ny0uOTYtMy40LTIuNS00LjI2TDIzLjMuNjJjLTEuNDgtLjgzLTMuMjgtLjgzLTQuNzYsMEwyLjUsOS41N2MtMS41NC44Ni0yLjUsMi40OS0yLjUsNC4yNnYxNy4wOGMwLDEuNzguOTcsMy40MiwyLjUzLDQuMjhsMTYuMDQsOC44MmMxLjQ2LjgxLDMuMjQuODEsNC43LDBsMTYuMDQtOC44MmMxLjU2LS44NiwyLjUzLTIuNSwyLjUzLTQuMjhWMTMuODNaTTEyLjAzLDMwLjc4YzAsLjQtLjQzLjY1LS43OC40NmwtMi42OC0xLjQ4Yy0uNTYtLjMxLS45LS44OS0uOS0xLjUzdi04LjA3YzAtLjQuNDMtLjY1Ljc4LS40NmwyLjk1LDEuNjNjLjM5LjIxLjYzLjYyLjYzLDEuMDd2OC4zOFpNMzQuMTYsMjguMTljMCwuNjMtLjM0LDEuMjItLjksMS41M2wtMi42OCwxLjQ4Yy0uMzUuMTktLjc4LS4wNi0uNzgtLjQ2di0xMC4zMmMwLS40LS40My0uNjUtLjc4LS40NmwtNC45NSwyLjczYy0uNTYuMzEtLjkuODktLjksMS41M3YxMC41NWMwLC4zMi0uMTcuNjEtLjQ1Ljc2bC0xLjAxLjU2Yy0uNTIuMjktMS4xNi4yOS0xLjY5LDBsLS45NC0uNTJjLS4yOC0uMTUtLjQ1LS40NS0uNDUtLjc2di0xMC42NmMwLS42My0uMzQtMS4yMi0uOS0xLjUzbC05LjgxLTUuNDJjLS4xNy0uMDktLjI3LS4yNy0uMjctLjQ2di0uNDJjMC0uNjMuMzQtMS4yMi45LTEuNTNsMS40LS43N2MuNTItLjI5LDEuMTYtLjI5LDEuNjksMGw4LjQ4LDQuNjljLjUyLjI5LDEuMTYuMjksMS42OSwwbDMuODEtMi4xMWMuMzYtLjIuMzYtLjcyLDAtLjkybC04LjUxLTQuN2MtLjM2LS4yLS4zNi0uNzIsMC0uOTJsMi45LTEuNmMuNTItLjI5LDEuMTYtLjI5LDEuNjksMGwxMS41NSw2LjM4Yy41Ni4zMS45Ljg5LjksMS41M3YxMS44MVoiIHN0eWxlPSJmaWxsOiMwZTBlMTA7IHN0cm9rZS13aWR0aDowcHg7Ii8+PC9nPjwvc3ZnPg==)](https://manual.mikrotik.com/docs/containers/)
 
 
 <sup>**[GitHub](https://github.com/qwertykolea/openvpn-client):**</sup> [![Docker Image Version](https://ghcr-badge.egpl.dev/qwertykolea/openvpn-client/latest_tag?label=latest+version)](https://github.com/qwertykolea/openvpn-client/pkgs/container/openvpn-client)
@@ -6,8 +6,10 @@
 [![Docker Image Size](https://ghcr-badge.egpl.dev/qwertykolea/openvpn-client/size?tag=latest&label=image+size)](https://github.com/qwertykolea/openvpn-client/pkgs/container/openvpn-client)
 
 <sup>**[Docker Hub](https://hub.docker.com/r/qwertykolea/openvpn-client):**</sup> [![Docker Pulls](https://img.shields.io/docker/pulls/qwertykolea/openvpn-client)](https://hub.docker.com/r/qwertykolea/openvpn-client)
+[![Docker Hub Version](https://img.shields.io/docker/v/qwertykolea/openvpn-client?sort=date&label=docker+hub)](https://hub.docker.com/r/qwertykolea/openvpn-client)
 
 [![Build and Push OpenVPN Container](https://github.com/qwertykolea/openvpn-client/actions/workflows/docker-build.yml/badge.svg)](https://github.com/qwertykolea/openvpn-client/actions/workflows/docker-build.yml)
+
 
 A lightweight, multi‑architecture OpenVPN client container built on Alpine Linux, designed specifically for **MikroTik RouterOS** container support and other resource‑constrained environments.
 
