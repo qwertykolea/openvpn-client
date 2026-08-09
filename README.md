@@ -180,7 +180,7 @@ add disabled=no distance=1 dst-address=0.0.0.0/0 gateway=192.168.40.10 \
 ```
 > [!IMPORTANT]
 > The gateway ( ` 192.168.40.10 ` ) is the VETH IP address assigned to the container.
-
+> 
 > It is imposible to use container interface ( ` veth-container-ovpn-1 ` ) or bridge ( ` bridge-container-openvpn-1 ` ) as gateway with OpenVPN.
 
 ## Environment Variables (Complete Reference)
@@ -198,7 +198,7 @@ add disabled=no distance=1 dst-address=0.0.0.0/0 gateway=192.168.40.10 \
 | `HEALTHCHECK_INTERVAL` | How often (in seconds) to ping the host. | `30` | `10` |
 | `HEALTHCHECK_MAX_FAILS` | Number of consecutive failed pings before the container reboots. | `3` | `2` |
 > [!NOTE]
->All variable values are trimmed of leading/trailing quotes and whitespace via `clean_var()` function.
+> All variable values are trimmed of leading/trailing quotes and whitespace via `clean_var()` function.
 
 ### DNS Configuration Details
 
@@ -353,6 +353,7 @@ The workflow (`.github/workflows/docker-build.yml`) does the following:
 ## Version Information
 
 The compiled OpenVPN binary shows a custom version string (e.g., `openvpn --version`):
+
 `OpenVPN 2.6.12 linux-armv7l-alpine-linux-v3.20-musl built on 7 Aug 2026 14:56 UTC | https://github.com/qwertykolea/openvpn-client | [SSL (OpenSSL)] [LZO] [LZ4] [EPOLL] [MH/PKTINFO] [AEAD]`
 
 This includes:
