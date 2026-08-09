@@ -4,6 +4,7 @@
 [![Docker Image Version](https://ghcr-badge.egpl.dev/qwertykolea/openvpn-client/latest_tag?label=latest+version)](https://github.com/qwertykolea/openvpn-client/pkgs/container/openvpn-client)
 [![Docker Image Tags](https://ghcr-badge.egpl.dev/qwertykolea/openvpn-client/tags?&label=image+tags)](https://github.com/qwertykolea/openvpn-client/pkgs/container/openvpn-client)
 [![Docker Image Size](https://ghcr-badge.egpl.dev/qwertykolea/openvpn-client/size?tag=latest&label=image+size)](https://github.com/qwertykolea/openvpn-client/pkgs/container/openvpn-client)
+[![Docker Pulls](https://img.shields.io/docker/pulls/qwertykolea/openvpn-client)](https://hub.docker.com/r/qwertykolea/openvpn-client)
 
 [![Build and Push OpenVPN Container](https://github.com/qwertykolea/openvpn-client/actions/workflows/docker-build.yml/badge.svg)](https://github.com/qwertykolea/openvpn-client/actions/workflows/docker-build.yml)
 
