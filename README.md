@@ -267,7 +267,7 @@ The entrypoint (`/entrypoint.sh`) performs the following actions in order:
 3. **Handle authentication** – Based on env vars or auth file, it inserts or comments out the `auth-user-pass` directive in the temporary config.
 4. **Ensure TUN device exists** – Creates `/dev/net/tun` if it doesn't exist.
 5. **Start healthcheck watchdog** – If `HEALTHCHECK_HOST` is set, the watchdog subshell is started in the background.
-6. **Generate the up script** – Writes `/tmp/up.sh` with the following commands:
+6. **Generate the up script(`/tmp/up.sh`)** – This script is executed by OpenVPN immediately after the tunnel interface is brought up, before any routes are added. It applies:
    - `iptables -t nat -A POSTROUTING -o tun0 -j MASQUERADE`
    - `iptables -P FORWARD ACCEPT`
    - `iptables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu`
