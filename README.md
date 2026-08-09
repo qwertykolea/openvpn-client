@@ -242,7 +242,7 @@ Example `/vpn/post-up.sh`:
 ```bash
 #!/bin/sh
 # Add custom routes
-ip route add 10.0.0.0/8 via $(ip route show dev tun0 | grep -oP 'via \K[0-9.]+')
+ip route add 1.1.1.1/32 via $(ip route show dev tun0 | grep -Eo 'via [0-9.]+' | cut -d' ' -f2)
 echo "Custom post-up script executed!"
 ```
 ## Healthcheck Watchdog – Internals
