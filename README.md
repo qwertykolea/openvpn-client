@@ -458,8 +458,11 @@ Issues and PRs are welcome. Please keep compatibility with MikroTik and all targ
 
 - [GitHub Repository](https://github.com/qwertykolea/openvpn-client)
 - [OpenVPN Official Site](https://openvpn.net/)
-- [MikroTik Container Documentation](https://help.mikrotik.com/docs/display/ROS/Container)
+- [OpenVPN Official Repository](https://github.com/OpenVPN/openvpn)
+- [MikroTik Container Documentation](https://manual.mikrotik.com/docs/containers/)
 - [GitHub Container Registry](https://ghcr.io/qwertykolea/openvpn-client)
+
+**Useful links
 
 
 
