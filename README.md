@@ -387,11 +387,7 @@ Common causes:
 
 
 ### Healthcheck keeps rebooting
-| Description | Docker | ` routeros ` |
-|-------------|-------------|---------|
-|Ensure `HEALTHCHECK_HOST` is reachable via `tun0`| `docker exec openvpn-client ping -I tun0 1.1.1.1` | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="ping -I tun0 1.1.1.1" ` |
-||Increase `HEALTHCHECK_INTERVAL` or `HEALTHCHECK_MAX_FAILS` if the host is slow to respond.||
-dcdsc
+
 <table>
 <thead>
 <tr>
@@ -421,7 +417,26 @@ dcdsc
 - Verify `OVPN_DNS_SERVERS` is set and properly parsed.
 - Check DNAT rules: `docker exec openvpn-client iptables -t nat -L PREROUTING -n` | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="iptables -t nat -L PREROUTING -n" `
 - Check `/etc/resolv.conf` inside the container | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="cat /etc/resolv.conf" `
-
+e
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Docker</th>
+<th><code>routeros</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="3">Verify <code>OVPN_DNS_SERVERS</code> is set and properly parsed.</td>
+<td><code>docker exec openvpn-client ping -I tun0 1.1.1.1</code></td>
+<td><code>container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="ping -I tun0 1.1.1.1"</code></td>
+</tr>
+<tr>
+<td colspan="3">Increase <code>HEALTHCHECK_INTERVAL</code> or <code>HEALTHCHECK_MAX_FAILS</code> if the host is slow to respond.</td>
+</tr>
+</tbody>
+</table>
 ### Custom script not running
 
 - Ensure `/vpn/post-up.sh` exists and is executable (`chmod +x`).
