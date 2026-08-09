@@ -441,8 +441,15 @@ Common causes:
 
 ### Custom script not running
 
-- Ensure `/vpn/post-up.sh` exists and is executable (`chmod +x`).
-- Add `set -x` at the top of the script to debug; errors are ignored (`|| true`), but output goes to logs.
+- Ensure `/vpn/post-up.sh` exists. The container automatically makes it executable (`chmod +x`) and converts Windows line endings (CRLF) to Unix (LF) before execution, so you don't need to do that manually.
+- Check OpenVPN logs for any errors or output from your script:
+  - On Docker: `docker logs openvpn-client`
+  - On RouterOS: `log print where message~"container"`
+  - Add `set -x` at the top of your script to see detailed execution traces in the logs.
+- The script is executed via the `--route-up` hook, which runs **after** all routes (including pushed routes) are added. If your script depends on routes being present, this is the correct timing.
+- Verify that your script has no syntax errors and that all commands it uses (e.g., `ip`, `iptables`) are available in the container (they are, as we install `iproute2` and `iptables`).
+- OpenVPN's script security is set to `--script-security 2`, which allows execution of user scripts. If you have overridden this via `OVPN_EXTRA_ARGS`, make sure you haven't lowered the security level.
+- Failures in the script are ignored (`|| true`), so even if it exits with an error, the tunnel will stay up. To debug, temporarily remove the `|| true` or check logs for error messages.
 
 ---
 
