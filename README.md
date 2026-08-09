@@ -380,9 +380,8 @@ Common causes:
 <table>
   <thead>
     <tr>
-      <th>Category</th>
-      <th>Item</th>
-      <th>Price</th>
+      <th>Docker</th>
+      <th> ` routeros `</th>
     </tr>
   </thead>
   <tbody>
