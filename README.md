@@ -37,7 +37,7 @@ A lightweight, multi‑architecture OpenVPN client container built on Alpine Lin
 - **DNS control** – Set custom DNS servers via `OVPN_DNS_SERVERS` (space, comma, or semicolon separated). Container overwrites `/etc/resolv.conf` and DNATs DNS requests to the first DNS server.
 - **Healthcheck watchdog** – Pings a host through `tun0` and reboots the container on consecutive failures.
 - **NAT & routing** – Applies iptables MASQUERADE, MSS clamping, and forwarding.
-- **Custom post‑up script** – Execute `/vpn/post-up.sh` after the tunnel is up.
+- **Custom post‑up script** – Execute `/vpn/post-up.sh` after all routes have been added (using OpenVPN's `--route-up` hook).
 - **Small footprint** – Built with OpenVPN's `--enable-small` and minimal runtime dependencies.
 - **Config auto‑detection** – Picks the first `.ovpn` file in `/vpn` if `OVPN_CONFIG_NAME` is not set.
 
@@ -236,8 +236,9 @@ The config is copied to `/tmp/config.ovpn` and modified with `sed` to either add
 
 ## Custom Post‑Up Script
 
-Place an executable script `post-up.sh` in `/vpn/`. It is executed **after** the tunnel is established, after the default iptables rules have been applied. Failures are ignored (`|| true`).
+Place an executable script `post-up.sh` in `/vpn/`. It is executed **after** all routes have been added (using OpenVPN's `--route-up` hook). This means that at the time your script runs, the routing table is fully populated – you can safely add static routes that depend on the VPN's pushed routes.
 
+The container also converts Windows line endings (CRLF) to Unix (LF) automatically before execution, using dos2unix if available, otherwise sed. Failures in the script are ignored (|| true)
 Example `/vpn/post-up.sh`:
 
 ```bash
