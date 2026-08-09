@@ -1,7 +1,7 @@
 # OpenVPN Client Container
 
 
-**GHCR:**[![Docker Image Version](https://ghcr-badge.egpl.dev/qwertykolea/openvpn-client/latest_tag?label=latest+version)](https://github.com/qwertykolea/openvpn-client/pkgs/container/openvpn-client)
+<sub>**GHCR:**</sub>[![Docker Image Version](https://ghcr-badge.egpl.dev/qwertykolea/openvpn-client/latest_tag?label=latest+version)](https://github.com/qwertykolea/openvpn-client/pkgs/container/openvpn-client)
 [![Docker Image Tags](https://ghcr-badge.egpl.dev/qwertykolea/openvpn-client/tags?&label=image+tags)](https://github.com/qwertykolea/openvpn-client/pkgs/container/openvpn-client)
 [![Docker Image Size](https://ghcr-badge.egpl.dev/qwertykolea/openvpn-client/size?tag=latest&label=image+size)](https://github.com/qwertykolea/openvpn-client/pkgs/container/openvpn-client)
 
