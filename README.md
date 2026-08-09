@@ -107,7 +107,7 @@ add envlists=ENV_OpenVPN hostname=OpenVPN-1 interface=veth-container-ovpn-1 \
     restart-policy=always root-dir=/openvpn-client:latest
 ```
 > [!IMPORTANT]
->**Note:** `privileged=yes`
+> Container must be privileged: `privileged=yes`
 ### 3. Create a routing table for VPN traffic
 ```routeros
 /routing table
@@ -138,7 +138,7 @@ Place your `.ovpn` config file(s) on a USB drive or persistent storage.
 add dst=/vpn list=MOUNT_OpenVPN src=/usb1/OpenVPN_config
 ```
 > [!NOTE]
->**Note:** Change `usb1`to your disk
+> Change `usb1`to your disk
 ### 6. Add the VETH to the bridge
 ```routeros
 /interface bridge port
