@@ -409,11 +409,7 @@ Common causes:
 </table>
 
 ### DNS not working
-| Description | Docker | ` routeros ` |
-|-------------|-------------|---------|
-||||
-||||
-||||
+
 - Verify `OVPN_DNS_SERVERS` is set and properly parsed.
 - Check DNAT rules: `docker exec openvpn-client iptables -t nat -L PREROUTING -n` | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="iptables -t nat -L PREROUTING -n" `
 - Check `/etc/resolv.conf` inside the container | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="cat /etc/resolv.conf" `
@@ -429,11 +425,13 @@ e
 <tbody>
 <tr>
 <td colspan="3">Verify <code>OVPN_DNS_SERVERS</code> is set and properly parsed.</td>
+</tr>
+<tr>
 <td><code>docker exec openvpn-client ping -I tun0 1.1.1.1</code></td>
 <td><code>container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="ping -I tun0 1.1.1.1"</code></td>
 </tr>
 <tr>
-<td colspan="3">Increase <code>HEALTHCHECK_INTERVAL</code> or <code>HEALTHCHECK_MAX_FAILS</code> if the host is slow to respond.</td>
+<td>Increase <code>HEALTHCHECK_INTERVAL</code> or <code>HEALTHCHECK_MAX_FAILS</code> if the host is slow to respond.</td>
 </tr>
 </tbody>
 </table>
