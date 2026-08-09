@@ -369,7 +369,8 @@ This includes:
 | Description | Linux | ` routeros ` |
 |-------------|---------|---------|
 | Check logs | `docker logs openvpn-client` | `routeros`: `log print where message~"container" ` |
-
+> [!NOTE]
+> Don't forget to enable logging on ` routeros ` container.
 
 Common causes:
 - Missing `.ovpn` file in `/vpn/` or invalid `OVPN_CONFIG_NAME`.
