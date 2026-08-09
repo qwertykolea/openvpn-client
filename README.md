@@ -180,6 +180,7 @@ add disabled=no distance=1 dst-address=0.0.0.0/0 gateway=192.168.40.10 \
 ```
 > [!IMPORTANT]
 > The gateway ( ` 192.168.40.10 ` ) is the VETH IP address assigned to the container.
+> 
 > It is imposible to use container interface ( ` veth-container-ovpn-1 ` ) or bridge ( ` bridge-container-openvpn-1 ` ) as gateway with OpenVPN.
 
 ## Environment Variables (Complete Reference)
