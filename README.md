@@ -137,6 +137,8 @@ Place your `.ovpn` config file(s) on a USB drive or persistent storage.
 /container mountAs
 add dst=/vpn list=MOUNT_OpenVPN src=/usb1/OpenVPN_config
 ```
+> [!NOTE]
+>**Note:** Change `usb1`to your disk
 ### 6. Add the VETH to the bridge
 ```routeros
 /interface bridge port
