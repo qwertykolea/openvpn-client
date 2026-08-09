@@ -382,7 +382,7 @@ Common causes:
 
 ### Healthcheck keeps rebooting
 || Docker | ` routeros ` |
-||-------------|---------|
+|-------------|-------------|---------|
 |Ensure `HEALTHCHECK_HOST` is reachable via `tun0`| `docker exec openvpn-client ping -I tun0 1.1.1.1` | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="ping -I tun0 1.1.1.1" ` |
 - Ensure `HEALTHCHECK_HOST` is reachable via `tun0`. Test manually: `docker exec openvpn-client ping -I tun0 1.1.1.1` | ` container shell [find tag=ghcr.io/qwertykolea/openvpn-client:latest] cmd="ping -I tun0 1.1.1.1" `
 - Increase `HEALTHCHECK_INTERVAL` or `HEALTHCHECK_MAX_FAILS` if the host is slow to respond.
