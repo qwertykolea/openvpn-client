@@ -110,7 +110,8 @@ start_watchdog() {
     fi
 }
 
-# 6. Generate up script (executed after tunnel is up) to set iptables NAT and routing
+# 6. Generate UP script (executed immediately after interface is up, BEFORE routes)
+#    This script sets up iptables NAT, MSS clamping, and optional DNS redirection.
 cat > /tmp/up.sh << 'EOF'
 #!/bin/sh
 iptables -t nat -A POSTROUTING -o tun0 -j MASQUERADE
@@ -145,18 +146,20 @@ EOF
     fi
 fi
 
-# Allow custom user-defined post-up script
-# ------------------------------------------------------------
-# NEW: Wait for tun0 to get an IP address before running post-up.sh,
-#      and convert CRLF to LF in the user script to avoid "not found" errors.
-# ------------------------------------------------------------
-cat >> /tmp/up.sh << 'EOF'
+chmod +x /tmp/up.sh
 
-# Wait up to 15 seconds for tun0 to acquire an IP (indicates tunnel is fully up)
-echo "Waiting for tun0 to get an IP address..."
-for i in $(seq 1 15); do
+# 7. Generate ROUTE-UP script (executed AFTER all routes are added by OpenVPN)
+#    This script handles the user's custom post-up.sh with CRLF conversion and proper timing.
+cat > /tmp/route-up.sh << 'EOF'
+#!/bin/sh
+
+# Optional: wait a moment for routes to settle (though OpenVPN calls this after routes are added)
+# We can still verify tun0 has an IP, but now routes are guaranteed to be present.
+echo "Route-up script started (all routes should be added)."
+
+# Ensure tun0 has an IP (just in case)
+for i in $(seq 1 5); do
     if ip addr show tun0 2>/dev/null | grep -q 'inet '; then
-        echo "tun0 is ready."
         break
     fi
     sleep 1
@@ -171,12 +174,12 @@ if [ -f /vpn/post-up.sh ]; then
         sed -i 's/\r$//' /vpn/post-up.sh
     fi
     chmod +x /vpn/post-up.sh
-    echo "Executing custom script /vpn/post-up.sh..."
+    echo "Executing custom script /vpn/post-up.sh (route-up context)..."
     sh /vpn/post-up.sh || true
 fi
 EOF
 
-chmod +x /tmp/up.sh
+chmod +x /tmp/route-up.sh
 
 # Start watchdog in background
 start_watchdog
@@ -185,12 +188,16 @@ echo "Starting OpenVPN..."
 echo "Config : $CONFIG"
 echo "Verb   : $VERB"
 
-# Launch OpenVPN with the generated config and up script
+# Launch OpenVPN with:
+#   --up        : for iptables/DNS (early)
+#   --route-up  : for user post-up script (after routes)
+#   --up-restart: ensures up script re-runs on restart
 exec openvpn \
     --config "$TMP_CONFIG" \
     --verb "$VERB" \
     --suppress-timestamps \
     --script-security 2 \
     --up /tmp/up.sh \
+    --route-up /tmp/route-up.sh \
     --up-restart \
     $OVPN_EXTRA_ARGS
