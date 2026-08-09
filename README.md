@@ -268,15 +268,16 @@ The entrypoint (`/entrypoint.sh`) performs the following actions in order:
 3. **Handle authentication** – Based on env vars or auth file, it inserts or comments out the `auth-user-pass` directive in the temporary config.
 4. **Ensure TUN device exists** – Creates `/dev/net/tun` if it doesn't exist.
 5. **Start healthcheck watchdog** – If `HEALTHCHECK_HOST` is set, the watchdog subshell is started in the background.
-6. **Generate the up script(`/tmp/up.sh`)** – This script is executed by OpenVPN immediately after the tunnel interface is brought up, before any routes are added. It applies:
+6. **Generate the up script( `/tmp/up.sh` )** – This script is executed by OpenVPN immediately after the tunnel interface is brought up, before any routes are added. It applies:
    - `iptables -t nat -A POSTROUTING -o tun0 -j MASQUERADE`
    - `iptables -P FORWARD ACCEPT`
    - `iptables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu`
    - If `OVPN_DNS_SERVERS` is set:
      - Writes the DNS list to `/etc/resolv.conf`
      - Adds DNAT rules: `iptables -t nat -A PREROUTING -p udp --dport 53 -j DNAT --to-destination ${PRIMARY_DNS}:53` (and same for TCP)
-   - Executes `/vpn/post-up.sh` if present.
-7. **Launch OpenVPN** with:
+7. **Generate the route-up script ( `/tmp/route-up.sh` )** – This script is executed by OpenVPN after all routes (including pushed routes) have been added. It:
+   - Waits briefly for tun0 to obtain an IP address (if not already present).
+9. **Launch OpenVPN** with:
    - `--config /tmp/config.ovpn`
    - `--verb $VERB`
    - `--suppress-timestamps`
@@ -286,7 +287,31 @@ The entrypoint (`/entrypoint.sh`) performs the following actions in order:
    - plus any arguments from `OVPN_EXTRA_ARGS`
 
 The container uses `exec` to run OpenVPN as PID 1, so signals are handled properly.
+Generate the route-up script (/tmp/route-up.sh) – This script is executed by OpenVPN after all routes (including pushed routes) have been added. It:
 
+Waits briefly for tun0 to obtain an IP address (if not already present).
+
+Executes /vpn/post-up.sh if present, after converting CRLF line endings.
+
+Launch OpenVPN with:
+
+--config /tmp/config.ovpn
+
+--verb $VERB
+
+--suppress-timestamps
+
+--script-security 2
+
+--up /tmp/up.sh
+
+--route-up /tmp/route-up.sh
+
+--up-restart
+
+plus any arguments from OVPN_EXTRA_ARGS
+
+The container uses exec to run OpenVPN as PID 1, so signals are handled properly.
 ## Building from Source – Compilation Details
 
 ### Local Build
