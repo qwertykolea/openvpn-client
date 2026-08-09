@@ -119,7 +119,7 @@ iptables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --cla
 echo "iptables NAT & MSS rules applied for tun0."
 EOF
 
-# If DNS servers(OVPN_DNS_SERVERS variable) are provided, add them to resolv.conf and DNAT rules
+# If DNS servers (OVPN_DNS_SERVERS variable) are provided, add them to resolv.conf and DNAT rules
 if [ -n "$OVPN_DNS_SERVERS" ]; then
     CLEAN_DNS_LIST=$(echo "$OVPN_DNS_SERVERS" | tr ',;' ' ')
     PRIMARY_DNS=""
@@ -146,8 +146,31 @@ EOF
 fi
 
 # Allow custom user-defined post-up script
+# ------------------------------------------------------------
+# NEW: Wait for tun0 to get an IP address before running post-up.sh,
+#      and convert CRLF to LF in the user script to avoid "not found" errors.
+# ------------------------------------------------------------
 cat >> /tmp/up.sh << 'EOF'
+
+# Wait up to 15 seconds for tun0 to acquire an IP (indicates tunnel is fully up)
+echo "Waiting for tun0 to get an IP address..."
+for i in $(seq 1 15); do
+    if ip addr show tun0 2>/dev/null | grep -q 'inet '; then
+        echo "tun0 is ready."
+        break
+    fi
+    sleep 1
+done
+
+# Execute custom post-up script if present, after converting Windows line endings
 if [ -f /vpn/post-up.sh ]; then
+    # Convert CRLF -> LF (if dos2unix is available, otherwise use sed)
+    if command -v dos2unix >/dev/null 2>&1; then
+        dos2unix /vpn/post-up.sh
+    else
+        sed -i 's/\r$//' /vpn/post-up.sh
+    fi
+    chmod +x /vpn/post-up.sh
     echo "Executing custom script /vpn/post-up.sh..."
     sh /vpn/post-up.sh || true
 fi
