@@ -367,7 +367,8 @@ Check logs on `routeros`: `log print where message~"container" `
 Common causes:
 - Missing `.ovpn` file in `/vpn/` or invalid `OVPN_CONFIG_NAME`.
 - Missing credentials (both env vars and auth file absent).
-- Missing `/dev/net/tun` – use `--device /dev/net/tun` or `privileged: true`. # not relevant for `routeros`
+- Missing `/dev/net/tun` – use `--device /dev/net/tun`
+- Missing `privileged: true`| on `routeros` : `privileged=yes`
 
 ### No network through VPN
 | Docker | ` routeros ` |
