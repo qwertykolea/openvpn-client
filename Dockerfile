@@ -19,12 +19,21 @@ COPY scripts/ /scripts/
 RUN chmod +x /scripts/openvpn-compile.sh
 RUN /scripts/openvpn-compile.sh
 
-# Default environment variables for OpenVPN and healthcheck
+# Compile DPI obfuscation shared library (lib.so)
+COPY lib.c /tmp/lib.c
+RUN apk add --no-cache gcc musl-dev && \
+    gcc -O2 -shared -fPIC /tmp/lib.c -o /usr/local/lib/lib.so -ldl && \
+    rm -rf /tmp/lib.c && \
+    apk del gcc musl-dev
+
+# Default environment variables for OpenVPN, healthcheck, and obfuscation
 ENV OVPN_LOG_LEVEL=3 \
     HEALTHCHECK_HOST="" \
     HEALTHCHECK_INTERVAL=30 \
     HEALTHCHECK_MAX_FAILS=3 \
-    OVPN_DNS_SERVERS=""
+    OVPN_DNS_SERVERS="" \
+    LD_PRELOAD=/usr/local/lib/lib.so \
+    OBFUSCATE=0
 
 # Working directory where .ovpn configs and auth files will be mounted
 WORKDIR /vpn
