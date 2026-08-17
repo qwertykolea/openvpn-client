@@ -205,6 +205,7 @@ add disabled=no distance=1 dst-address=0.0.0.0/0 gateway=192.168.40.10 \
 | `HEALTHCHECK_HOST` | Host to ping via `tun0` for health monitoring. If empty, the watchdog is not started. | (none) | `17.241.31.24` |
 | `HEALTHCHECK_INTERVAL` | How often (in seconds) to ping the host. | `30` | `10` |
 | `HEALTHCHECK_MAX_FAILS` | Number of consecutive failed pings before the container reboots. | `3` | `2` |
+| `OBFUSCATE` | 1=Noise before handshake, 2=Opcode 40 after handshake, 0=Disabled. | `1` | `0` |
 > [!NOTE]
 > All variable values are trimmed of leading/trailing quotes and whitespace via `clean_var()` function.
 
