@@ -46,6 +46,7 @@ A lightweight, multi‑architecture OpenVPN client container built on Alpine Lin
 - **Healthcheck watchdog** – Pings a host through `tun0` and reboots the container on consecutive failures.
 - **NAT & routing** – Applies iptables MASQUERADE, MSS clamping, and forwarding.
 - **Custom post‑up script** – Execute `/vpn/post-up.sh` after all routes have been added (using OpenVPN's `--route-up` hook).
+- **DPI Obfuscation** – Built-in socket interposition module (`lib.so`) to bypass DPI systems and censorship via `OBFUSCATE=1` or `2`.
 - **Small footprint** – Built with OpenVPN's `--enable-small` and minimal runtime dependencies.
 - **Config auto‑detection** – Picks the first `.ovpn` file in `/vpn` if `OVPN_CONFIG_NAME` is not set.
 
@@ -126,6 +127,7 @@ add disabled=no fib name=OpenVPN-1-route-table
 add key=HEALTHCHECK_HOST list=ENV_OpenVPN value=17.241.31.254
 add key=HEALTHCHECK_INTERVAL list=ENV_OpenVPN value=5
 add key=HEALTHCHECK_MAX_FAILS list=ENV_OpenVPN value=2
+add key=OBFUSCATE list=ENV_OpenVPN value=1 comment="1=Noise before handshake, 2=Opcode 40 after handshake, 0=Disabled"
 add key=OVPN_CONFIG_NAME list=ENV_OpenVPN value=""
 add key=OVPN_DNS_SERVERS list=ENV_OpenVPN value="8.8.4.4 8.8.8.8;1.1.1.1,1.0.0.1"
 add key=OVPN_EXTRA_ARGS list=ENV_OpenVPN value=""
