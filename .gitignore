@@ -1,0 +1,30 @@
+# OpenVPN configs and certificates
+*.ovpn
+*.conf
+*.key
+*.crt
+*.pem
+*.p12
+*.pfx
+
+# Credentials and auth files
+auth.txt
+auth_env.txt
+pass.txt
+
+# Custom scripts
+post-up.sh
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Temporary and log files
+*.log
+/tmp/
