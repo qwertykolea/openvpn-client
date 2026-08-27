@@ -46,10 +46,11 @@ A lightweight, multi‑architecture OpenVPN client container built on Alpine Lin
 - **Healthcheck watchdog** – Pings a host through `tun0` and reboots the container on consecutive failures.
 - **NAT & routing** – Applies iptables MASQUERADE, MSS clamping, and forwarding.
 - **Custom post‑up script** – Execute `/vpn/post-up.sh` after all routes have been added (using OpenVPN's `--route-up` hook).
-- **DPI Obfuscation** – Built-in socket interposition module (`lib.so`) to bypass DPI systems and censorship via `OBFUSCATE=1` or `2`. `soon...`
+- **DPI Obfuscation** – Built-in socket interposition module (`lib.so`) to bypass DPI systems and censorship via `OBFUSCATE=1` or `2`.
 - **Small footprint** – Built with OpenVPN's `--enable-small` and minimal runtime dependencies.
 - **Config auto‑detection** – Picks the first `.ovpn` file in `/vpn` if `OVPN_CONFIG_NAME` is not set.
-
+> [!IMPORTANT]
+> The `OBFUSCATE` feature via `lib.so` currently only intercepts `sendto()` and is effective **only for `UDP` configurations** (`proto udp`). It will not alter traffic for `TCP` tunnels.
 ---
 
 ## Quick Start

@@ -27,11 +27,14 @@ static inline int is_control_packet(const uint8_t *payload) {
   return (op == 7 || op == 8 || op == 10);
 }
 
+__attribute__((constructor))
+static void init_obfs() {
+  srand((unsigned int)(time(NULL) ^ getpid()));
+}
+
 static void inject_dummy_stream(int fd, const void *orig_buf, size_t orig_len,
                                 int flags, const struct sockaddr *dst,
                                 socklen_t addrlen, obfs_mode_t mode) {
-  srand((unsigned int)(time(NULL) ^ getpid()));
-
   for (int cycle = 0; cycle < 2; cycle++) {
     size_t packet_size = orig_len + (size_t)(rand() % 101);
     uint8_t *buffer = (uint8_t *)malloc(packet_size);
@@ -56,7 +59,7 @@ static void inject_dummy_stream(int fd, const void *orig_buf, size_t orig_len,
       }
     }
 
-    int send_count = 100 + (rand() % 101);
+    int send_count = 10 + (rand() % 11);
     for (int i = 0; i < send_count; i++) {
       real_sendto(fd, buffer, packet_size, flags, dst, addrlen);
     }
