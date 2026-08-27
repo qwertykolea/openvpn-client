@@ -50,7 +50,10 @@ A lightweight, multi‑architecture OpenVPN client container built on Alpine Lin
 - **Small footprint** – Built with OpenVPN's `--enable-small` and minimal runtime dependencies.
 - **Config auto‑detection** – Picks the first `.ovpn` file in `/vpn` if `OVPN_CONFIG_NAME` is not set.
 > [!IMPORTANT]
+> The `OBFUSCATE` feature available starting from 2.7.6.
+> 
 > The `OBFUSCATE` feature via `lib.so` currently only intercepts `sendto()` and is effective **only for `UDP` configurations** (`proto udp`). It will not alter traffic for `TCP` tunnels.
+
 ---
 
 ## Quick Start
