@@ -1,0 +1,68 @@
+name: 🐛 Bug Report
+description: Report a bug or issue running the OpenVPN client container on MikroTik RouterOS
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before creating an issue, please ensure you have reviewed the [README](https://github.com/qwertykolea/openvpn-client#readme) and your setup meets the prerequisites below.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight Checklist
+      description: Please confirm the following items before submitting:
+      options:
+        - label: "The container is running with `privileged=yes` (required for `/dev/net/tun` and iptables)"
+          required: true
+        - label: "RouterOS is updated to the latest version (recommended 7.25+)"
+          required: true
+        - label: "The `.ovpn` configuration has been tested and works on a PC or other device"
+          required: true
+
+  - type: input
+    id: routeros_version
+    attributes:
+      label: RouterOS Version
+      placeholder: "e.g., 7.25.1, 7.26beta5"
+    validations:
+      required: true
+
+  - type: input
+    id: device_model
+    attributes:
+      label: MikroTik Device Model & Architecture
+      placeholder: "e.g., RB5009 (ARM64), L009 (ARM), hEX (MMIPS), CHR (x86_64)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem Description
+      description: A clear and concise description of the issue. What did you expect to happen, and what happened instead?
+      placeholder: "Describe the problem..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: container_config
+    attributes:
+      label: Container Configuration in RouterOS
+      description: Output of `/container export` (please sanitize secrets like `OVPN_PASS`!)
+      render: routeros
+      placeholder: |
+        /container export
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs & Output
+      description: RouterOS container logs (`/log print where topics~"container"`) or any relevant error output.
+      render: text
+      placeholder: "Paste logs or error messages here..."
+    validations:
+      required: false
