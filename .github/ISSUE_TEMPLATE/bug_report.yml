@@ -52,7 +52,7 @@ body:
       label: "Container Configuration in RouterOS"
       description: "Output of `/container export` (please sanitize secrets like `OVPN_PASS`!)"
       placeholder: "/container export"
-    render: shell
+      render: shell
     validations:
       required: true
 
@@ -62,6 +62,6 @@ body:
       label: "Relevant Logs & Output"
       description: "RouterOS container logs (`/log print where topics~\"container\"`) or any relevant error output."
       placeholder: "Paste logs or error messages here..."
-    render: text
+      render: shell
     validations:
       required: false
